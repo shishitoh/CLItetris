@@ -4,6 +4,7 @@
 
 #include "mino.h"
 #include "setup.h"
+#include "UI.h"
 
 int main(void) {
 
@@ -11,10 +12,12 @@ int main(void) {
     char *Field;
     Mino smino;
 
+    Init_Display();
+
     /* 初期化 */
     while (1) {
 
-        Init(&Field);
+        Init_Game(&Field, &smino);
 
         /* ゲーム中 */
         while (1) {
@@ -54,7 +57,7 @@ int main(void) {
                 }
             }
 
-            whiteField(Field);
+            write_Field(Field);
         }
 
         Free();

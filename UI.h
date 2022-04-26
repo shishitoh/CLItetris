@@ -1,6 +1,5 @@
 #pragma once
 
-#incldue "mino.h"
+#include "mino.h"
 
-void write_Field(char *Field);
-void write_curmino(Mino *pmino);
+void write_Field(char *Field, Mino *pmino);

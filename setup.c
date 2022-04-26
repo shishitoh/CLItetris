@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include "setup.h"
+#include "mino.h"
 
 void initField(char **Field) {
 
@@ -22,10 +22,7 @@ void freeField(char **Field) {
     *Field = NULL;
 }
 
-void Init(char **Field) {
-
-    /* 乱数初期化 */
-    srand((unsigned char)time(NULL));
+void Init_Display(void) {
 
     /* ターミナルの画面制御開始 */
     initscr();
@@ -47,11 +44,19 @@ void Init(char **Field) {
     noecho();
     cbreak();
 
+    /* 現在の端末画面をクリア */
+    erase();
+}
+
+void Init_Game(char **Field, Mino *pmino) {
+
+    /* 乱数初期化 */
+    srand((unsigned char)time(NULL));
+
     /* ミノを置くフィールドを確保 */
     initField(Field);
 
-    /* 現在の端末画面をクリア */
-    erase();
+    pmino->mino = -1;
 }
 
 void Free(void) {
