@@ -3,8 +3,19 @@
 #include <unistd.h>
 
 #include "setup.h"
+#include "mino.h"
 
-void writefield(char ***Field) {
+#define BLANKTOP 2
+#define BLANKLEFT 2
+
+#define FIELDADDSTR(y, x, str) \\
+    mvaddstr(BLANKTOP+20-(y), \\
+             2*(BLANKLEFT+(x)), \\
+             (str))
+
+void write_curmino(Mino *pmino);
+
+void write_Field(char *Field) {
 
     int i, j, h, w;
     char mino_type;
@@ -20,12 +31,12 @@ void writefield(char ***Field) {
             // blank
             if (mino_type == BLANK) {
                 attrset(COLOR_PAIR(mino_type));
-                MVADDSTR(BLANK+20-h, BLANKLEFT+w, " .");
+                FIELDADDSTR(h, w, " .");
                 continue;
             }
             // not blank
             attrset(COLOR_PAIR(mino_type));
-            MVADDSTR(BLANKTOP+20-h, BLANKLEFT+w, "[]");
+            FIELDADDSTR(h, w, "[]");
 
         }
     }
@@ -34,24 +45,27 @@ void writefield(char ***Field) {
     for (w = 0; w < 10; ++w) {
 
         mino_type = GET_TYPE(Field, h, w);
-
-        attrset(COLOR_PAIR(mono_type));
-        MVADDSTR(BLANKTOP, BLANKLEFT+w, "[]");
-
+        if (mino_type != BLANK) {
+            attrset(COLOR_PAIR(mono_type));
+            FIELDADDSTR(h, w, "[]");
+        }
     }
+
+    write_curmino(pmino);
 }
 
-void white_curmino(Mino *pmino) {
+void write_curmino(Mino *pmino) {
 
     int i;
 
+    /* Fieldにミノがない場合は何もしない */
     if (pmino->mino < 0) return;
 
     for (i = 0; i < 4; ++i) {
-        MVADDSTR(BLANKTOP+20
-                    -(pmino->h+MINOSarray[pmino->mino][pmino->dir][i][0]),
-                BLANKLEFT
-                    +(pmino->w+MINOSarray[pmino->mino][pmino->dir][i][1]),
-                "[]");
+        FIELDADDSTR(pmino->h
+                        +MINOSarray[pmino->mino][pmino->dir][i][0]
+                    pmino->w
+                        +MINOSarray[pmino->mino][pmino->dir][i][1],
+                    "[]");
     }
 }

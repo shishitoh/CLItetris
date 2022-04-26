@@ -13,11 +13,7 @@
 #define OJAMA 7
 #define BLANK 8
 
-#define BLANKTOP 2
-#define BLANKLEFT 2
-
 #define GET_TYPE(f, y, x) (f)[10*(y) + (x)]
-
 
 typedef struct tetrimino {
     int mino, dir;
