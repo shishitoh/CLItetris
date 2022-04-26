@@ -3,15 +3,16 @@
 #define INITH 17
 #define INITW 3
 
-#define IMINO 0
-#define OMINO 1
-#define SMINO 2
-#define ZMINO 3
-#define JMINO 4
-#define LMINO 5
-#define TMINO 6
-#define OJAMA 7
-#define BLANK 8
+/* 0はなし、init_pairを定義するときに困るので */
+#define IMINO 1
+#define OMINO 2
+#define SMINO 3
+#define ZMINO 4
+#define JMINO 5
+#define LMINO 6
+#define TMINO 7
+#define OJAMA 8
+#define BLANK 9
 
 #define GET_TYPE(f, y, x) (f)[10*(y) + (x)]
 

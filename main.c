@@ -58,10 +58,12 @@ int main(void) {
             }
 
             write_Field(Field);
+            refresh();
         }
 
-        Free();
+        Free_Game(Field);
     }
+    Free_Display();
 
     return 0;
 }

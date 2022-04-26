@@ -6,6 +6,15 @@
 
 #include "mino.h"
 
+#define MYCOLOR_RED COLOR_RED
+#define MYCOLOR_CYAN COLOR_CYAN
+#define MYCOLOR_BLUE COLOR_BLUE
+#define MYCOLOR_YELLOW COLOR_YELLOW
+#define MYCOLOR_MAGENTA COLOR_MAGENTA
+#define MYCOLOR_GREEN COLOR_GREEN
+#define MYCOLOR_ORANGE 12 // この数字は適当、多分8以上ならOK
+#define MYCOLOR_GRAY COLOR_GRAY
+
 void initField(char **Field) {
 
     int i;
@@ -29,15 +38,17 @@ void Init_Display(void) {
 
     /* 色一覧を定義 */
     start_color();
-    init_pair(BLANK, COLOR_WHITE, COLOR_BLACK);
-    init_pair(IMINO, COLOR_WHITE, COLOR_CYAN);
-    init_pair(OMINO, COLOR_WHITE, COLOR_YELLOW);
-    init_pair(SMINO, COLOR_WHITE, COLOR_GREEN);
-    init_pair(ZMINO, COLOR_WHITE, COLOR_RED);
-    init_pair(JMINO, COLOR_WHITE, COLOR_BLUE);
-    init_pair(LMINO, COLOR_WHITE, COLOR_BLACK);
-    init_pair(TMINO, COLOR_WHITE, COLOR_MAGENTA);
-    init_pair(OJAMA, COLOR_WHITE, COLOR_GRAY);
+    init_color(MYCOLOR_ORANGE, 1000, 500, 0)
+
+    init_pair(BLANK, COLOR_WHITE, MYCOLOR_BLACK);
+    init_pair(IMINO, COLOR_WHITE, MYCOLOR_CYAN);
+    init_pair(OMINO, COLOR_WHITE, MYCOLOR_YELLOW);
+    init_pair(SMINO, COLOR_WHITE, MYCOLOR_GREEN);
+    init_pair(ZMINO, COLOR_WHITE, MYCOLOR_RED);
+    init_pair(JMINO, COLOR_WHITE, MYCOLOR_BLUE);
+    init_pair(LMINO, COLOR_WHITE, MYCOLOR_ORANGE);
+    init_pair(TMINO, COLOR_WHITE, MYCOLOR_MAGENTA);
+    init_pair(OJAMA, COLOR_WHITE, MYCOLOR_GRAY);
 
     /* 入力を表示しないように、
     エンター無しで入力を受け取るように */
@@ -59,6 +70,10 @@ void Init_Game(char **Field, Mino *pmino) {
     pmino->mino = -1;
 }
 
-void Free(void) {
+void Free_Game(char *Field) {
+    free(Field);
+}
+
+void Free_Display(void) {
     endwin();
 }
