@@ -5,7 +5,9 @@
 #include <time.h>
 
 #include "mino.h"
+#include "nexts.h"
 
+#define MYCOLOR_BLACK COLOR_BLACK
 #define MYCOLOR_RED COLOR_RED
 #define MYCOLOR_CYAN COLOR_CYAN
 #define MYCOLOR_BLUE COLOR_BLUE
@@ -13,7 +15,7 @@
 #define MYCOLOR_MAGENTA COLOR_MAGENTA
 #define MYCOLOR_GREEN COLOR_GREEN
 #define MYCOLOR_ORANGE 12 // この数字は適当、多分8以上ならOK
-#define MYCOLOR_GRAY COLOR_GRAY
+#define MYCOLOR_GRAY 113
 
 void initField(char **Field) {
 
@@ -38,7 +40,8 @@ void Init_Display(void) {
 
     /* 色一覧を定義 */
     start_color();
-    init_color(MYCOLOR_ORANGE, 1000, 500, 0)
+    init_color(MYCOLOR_ORANGE, 1000, 500, 0);
+    init_color(MYCOLOR_GRAY, 250, 250, 250);
 
     init_pair(BLANK, COLOR_WHITE, MYCOLOR_BLACK);
     init_pair(IMINO, COLOR_WHITE, MYCOLOR_CYAN);
@@ -54,12 +57,16 @@ void Init_Display(void) {
     エンター無しで入力を受け取るように */
     noecho();
     cbreak();
+    curs_set(0);
 
     /* 現在の端末画面をクリア */
     erase();
+
+    init_MINOSarray();
+    init_SRSoffsets();
 }
 
-void Init_Game(char **Field, Mino *pmino) {
+void Init_Game(char **Field, Mino *pmino, Nexts *nexts) {
 
     /* 乱数初期化 */
     srand((unsigned char)time(NULL));
@@ -68,10 +75,16 @@ void Init_Game(char **Field, Mino *pmino) {
     initField(Field);
 
     pmino->mino = -1;
+
+    /* next配列の初期化 */
+   init_nexts(nexts, 6); 
 }
 
-void Free_Game(char *Field) {
-    free(Field);
+void Free_Game(char **Field, Nexts *nexts) {
+    free(*Field);
+    *Field = NULL;
+
+    free_nexts(nexts);
 }
 
 void Free_Display(void) {

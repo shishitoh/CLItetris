@@ -1,6 +1,7 @@
 #include <ncurses.h>
 #include <string.h>
 #include <unistd.h>
+#include <stdlib.h>
 
 #include "mino.h"
 
@@ -73,12 +74,20 @@ void put_mino(char *Field, Mino *pmino) {
     pmino->mino = -1;
 }
 
-/* rotationが不可能なとき-1を, 可能なときSRSの候補の数字を返す */
+/* 時計回りのとき0, 半時計回りのとき1をrotateに渡す 
+rotationが不可能なとき-1を, 可能なときSRSの候補の数字を返す */
 int rotate_check(char *Field, Mino *pmino, int rotate) {
 
     int i, j;
 
     int empty_all;
+
+    int afterdir;
+    if (rotate==0) {
+        afterdir = (pmino->dir+1) & 3;
+    } else if (rotate==1) {
+        afterdir = (pmino->dir+3) & 3;
+    }
 
     for (i = 0; i < 5; ++i) {
 
@@ -86,10 +95,10 @@ int rotate_check(char *Field, Mino *pmino, int rotate) {
 
         for (j = 0; j < 4; ++j) {
             if (is_empty(Field,
-                         pmino->h+SRSoffsets[pmino->mino][pmino->dir+rotate<<2][i][0]
-                             +MINOSarray[pmino->mino][pmino->dir][j][0],
-                         pmino->w+SRSoffsets[pmino->mino][pmino->dir+rotate<<2][i][1]
-                             +MINOSarray[pmino->mino][pmino->dir][j][1])) {
+                         pmino->h+SRSoffsets[pmino->mino][pmino->dir+(rotate<<2)][i][0]
+                             +MINOSarray[pmino->mino][afterdir][j][0],
+                         pmino->w+SRSoffsets[pmino->mino][pmino->dir+(rotate<<2)][i][1]
+                             +MINOSarray[pmino->mino][afterdir][j][1])) {
 
                 continue;
             }
@@ -135,14 +144,14 @@ void deleterows(char *Field) {
         for (i = 0; i < 10; ++i) {
             GET_TYPE(Field, brow, i) = BLANK;
         }
-        ++brow
+        ++brow;
     }
 }
 
-int random_mino(mino) {
+int random_mino(void) {
 
     /* この方法だと厳密なランダムにはならない */
-    switch (((unsigned int)rand()) % 7) {
+    switch (rand() % 7) {
         case 0:
             return IMINO;
         case 1:
@@ -158,6 +167,9 @@ int random_mino(mino) {
         case 6:
             return TMINO;
     }
+
+    /* 到達不能 */
+    return -1;
 }
 
 void try_move_left(char *Field, Mino *pmino) {
@@ -177,12 +189,34 @@ void try_move_down(char *Field, Mino *pmino) {
 }
 
 void hard_drop(char *Field, Mino *pmino) {
-    /* 未実装 */
+    while (fall_check(Field, pmino)) {
+        --(pmino->h);
+    }
+    put_mino(Field, pmino);
 }
 
 void try_move_right(char *Field, Mino *pmino) {
 
     if (move_check(Field, pmino, 1)) {
         ++(pmino->w);
+    }
+}
+
+void try_rotate(char *Field, Mino *pmino, int rotate) {
+
+    int ver = rotate_check(Field, pmino, rotate);
+    mvprintw(5, 30, "rotate=%d, ver=%d", rotate, ver);
+    if (ver < 0) {
+        return;
+    }
+
+    mvprintw(6, 30, "dir=%d", pmino->dir);
+    pmino->h += SRSoffsets[pmino->mino][pmino->dir+(rotate<<2)][ver][0];
+    pmino->w += SRSoffsets[pmino->mino][pmino->dir+(rotate<<2)][ver][1];
+
+    if (rotate==0) {
+        pmino->dir = (pmino->dir + 1) & 0b11;
+    } else if (rotate==1) {
+        pmino->dir = (pmino->dir + 3) & 0b11;
     }
 }

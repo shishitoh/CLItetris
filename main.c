@@ -2,22 +2,24 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "mino.h"
 #include "setup.h"
 #include "UI.h"
+#include "core.h"
+#include "nexts.h"
 
 int main(void) {
 
     int ch;
     char *Field;
     Mino smino;
+    Nexts nexts;
 
     Init_Display();
 
     /* 初期化 */
     while (1) {
 
-        Init_Game(&Field, &smino);
+        Init_Game(&Field, &smino, &nexts);
 
         /* ゲーム中 */
         while (1) {
@@ -25,43 +27,52 @@ int main(void) {
             /* ミノがなければ生成する,
             生成できなければゲームオーバー */
             if (smino.mino < 0) {
-                smino.mino = random_mino();
-                if (pop_check(Field, smino.mino)) {
+                smino.mino = pop_next(&nexts);
+                if (pop_check(Field, &smino)) {
                     init_mino(&smino);
                 } else {
                     break;
                 }
             }
 
+            write_all(Field, &smino, &nexts, 5);
+            refresh();
+
             ch = getch();
             /* vim_like key bind */
             switch(ch) {
-                case h: { /* left */
+                case 'h': { /* left */
                     try_move_left(Field, &smino);
                     break;
                 }
-                case j: { /* down */
-                    move_down(Field, &smino);
+                case 'j': { /* down */
+                    try_move_down(Field, &smino);
                     break;
                 }
-                case k: { /* up */
-                    move_up(Field, &smino);
+                case 'k': { /* up */
+                    hard_drop(Field, &smino);
                     break;
                 }
-                case l: { /* right */
-                    move_right(Field, &smino);
+                case 'l': { /* right */
+                    try_move_right(Field, &smino);
+                    break;
+                }
+                case 's': { /* 半時計 */
+                    try_rotate(Field, &smino, 1);
+                    break;
+                }
+                case 'd': { /* 時計 */
+                    try_rotate(Field, &smino, 0);
                     break;
                 }
                 default: {
                     continue;
                 }
             }
-
-            write_Field(Field);
-            refresh();
+            deleterows(Field);
         }
 
-        Free_Game(Field);
+        Free_Game(&Field, &nexts);
     }
     Free_Display();
 

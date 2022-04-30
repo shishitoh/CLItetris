@@ -1,5 +1,6 @@
 #pragma once
 
+#include "nexts.h"
 #include "mino.h"
 
-void write_Field(char *Field, Mino *pmino);
+void write_all(char *Field, Mino *pmino, Nexts *nexts, int L);
