@@ -75,17 +75,19 @@ static void shuffle() {
 
 void init_nexts(Nexts *nexts, int size) {
 
-    printf("init_nexts start\n");
     int i, j;
 
-    init_queue(&(nexts->queue), size+7);
+    init_queue(&(nexts->queue), size);
 
-    for (i = 0; i < size/7 + 1; ++i) {
+    for (i = 0; i < size/7; ++i) {
         shuffle();
         for (j = 0; j < 7; ++j) {
-            printf("i=%d, j=%d\n", i, j);
             queue(&(nexts->queue), SHUFFLEDMINOS[j], NULL);
         }
+    }
+    shuffle();
+    for (i = 0; i < size%7; ++i) {
+        queue(&(nexts->queue), SHUFFLEDMINOS[i], NULL);
     }
     nexts->loop_cnt = size%7;
 }

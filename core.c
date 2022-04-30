@@ -205,12 +205,10 @@ void try_move_right(char *Field, Mino *pmino) {
 void try_rotate(char *Field, Mino *pmino, int rotate) {
 
     int ver = rotate_check(Field, pmino, rotate);
-    mvprintw(5, 30, "rotate=%d, ver=%d", rotate, ver);
     if (ver < 0) {
         return;
     }
 
-    mvprintw(6, 30, "dir=%d", pmino->dir);
     pmino->h += SRSoffsets[pmino->mino][pmino->dir+(rotate<<2)][ver][0];
     pmino->w += SRSoffsets[pmino->mino][pmino->dir+(rotate<<2)][ver][1];
 

@@ -58,17 +58,21 @@ void write_Field(char *Field, Mino *pmino) {
 void write_curmino(Mino *pmino) {
 
     int i;
+    int _h;
 
     /* Fieldにミノがない場合は何もしない */
     if (pmino->mino < 0) return;
 
     for (i = 0; i < 4; ++i) {
-        attrset(COLOR_PAIR(pmino->mino));
-        FIELDADDSTR(pmino->h
-                        +MINOSarray[pmino->mino][pmino->dir][i][0],
-                    pmino->w
-                        +MINOSarray[pmino->mino][pmino->dir][i][1],
-                    "[]");
+        _h = pmino->h+MINOSarray[pmino->mino][pmino->dir][i][0];
+        if (_h < 21) {
+            attrset(COLOR_PAIR(pmino->mino));
+            FIELDADDSTR(pmino->h
+                            +MINOSarray[pmino->mino][pmino->dir][i][0],
+                        pmino->w
+                            +MINOSarray[pmino->mino][pmino->dir][i][1],
+                        "[]");
+        }
     }
 }
 
