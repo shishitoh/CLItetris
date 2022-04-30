@@ -10,6 +10,8 @@
 int main(void) {
 
     int ch;
+    int hold_mino;
+    int do_hold;
     char *Field;
     Mino smino;
     Nexts nexts;
@@ -19,7 +21,7 @@ int main(void) {
     /* 初期化 */
     while (1) {
 
-        Init_Game(&Field, &smino, &nexts);
+        Init_Game(&Field, &smino, &nexts, &hold_mino);
 
         /* ゲーム中 */
         while (1) {
@@ -35,7 +37,7 @@ int main(void) {
                 }
             }
 
-            write_all(Field, &smino, &nexts, 5);
+            write_all(Field, &smino, &nexts, 5, hold_mino);
             refresh();
 
             ch = getch();
@@ -46,11 +48,11 @@ int main(void) {
                     break;
                 }
                 case 'j': { /* down */
-                    try_move_down(Field, &smino);
+                    try_move_down(Field, &smino, &do_hold);
                     break;
                 }
                 case 'k': { /* up */
-                    hard_drop(Field, &smino);
+                    hard_drop(Field, &smino, &do_hold);
                     break;
                 }
                 case 'l': { /* right */
@@ -63,6 +65,10 @@ int main(void) {
                 }
                 case 'd': { /* 時計 */
                     try_rotate(Field, &smino, 0);
+                    break;
+                }
+                case 'a': {
+                    hold(&hold_mino, &smino, &do_hold);
                     break;
                 }
                 default: {

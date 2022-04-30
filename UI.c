@@ -7,7 +7,7 @@
 #include "mino.h"
 
 #define BLANKTOP 2
-#define BLANKLEFT 2
+#define BLANKLEFT 4
 
 #define FIELDADDSTR(y, x, str) \
     mvaddstr(BLANKTOP+20-(y), \
@@ -115,14 +115,26 @@ void write_nexts(Nexts *nexts, int L) {
         ch = mino_to_char(mino);
         attrset(COLOR_PAIR(mino));
         mvaddch(BLANKTOP + 1 + 2*i,
-                2*(BLANKLEFT+10+BLANKLEFT),
+                2*(BLANKLEFT+10+2),
                 ch);
     }
 }
 
-void write_all(char *Field, Mino *pmino, Nexts *nexts, int L) {
+void write_hold(int hold_mino) {
+
+    if (hold_mino < 0) {
+        attrset(COLOR_PAIR(BLANK));
+        mvaddch(BLANKTOP+1, 2*(BLANKLEFT-1), '-');
+    } else {
+        attrset(COLOR_PAIR(hold_mino));
+        mvaddch(BLANKTOP+1, 2*(BLANKLEFT-1), mino_to_char(hold_mino));
+    }
+}
+
+void write_all(char *Field, Mino *pmino, Nexts *nexts, int L, int hold_mino) {
     write_Field(Field, pmino);
     write_curmino(pmino);
     write_nexts(nexts, L);
+    write_hold(hold_mino);
 }
 

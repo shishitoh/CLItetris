@@ -69,7 +69,7 @@ void Init_Display(void) {
     init_SRSoffsets();
 }
 
-void Init_Game(char **Field, Mino *pmino, Nexts *nexts) {
+void Init_Game(char **Field, Mino *pmino, Nexts *nexts, int *hold_mino) {
 
     /* 乱数初期化 */
     srand((unsigned char)time(NULL));
@@ -81,6 +81,9 @@ void Init_Game(char **Field, Mino *pmino, Nexts *nexts) {
 
     /* next配列の初期化 */
    init_nexts(nexts, 11);
+
+   /* ホールドを空に */
+   *hold_mino = -1;
 }
 
 void Free_Game(char **Field, Nexts *nexts) {

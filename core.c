@@ -61,7 +61,7 @@ int fall_check(char *Field, Mino *pmino) {
     return 1;
 }
 
-void put_mino(char *Field, Mino *pmino) {
+void put_mino(char *Field, Mino *pmino, int *do_hold) {
 
     int i;
 
@@ -72,6 +72,8 @@ void put_mino(char *Field, Mino *pmino) {
             = pmino->mino;
     }
     pmino->mino = -1;
+
+    *do_hold = 0;
 }
 
 /* 時計回りのとき0, 半時計回りのとき1をrotateに渡す 
@@ -179,20 +181,20 @@ void try_move_left(char *Field, Mino *pmino) {
     }
 }
 
-void try_move_down(char *Field, Mino *pmino) {
+void try_move_down(char *Field, Mino *pmino, int *do_hold) {
 
     if (fall_check(Field, pmino)) {
         --(pmino->h);
     } else {
-        put_mino(Field, pmino);
+        put_mino(Field, pmino, do_hold);
     }
 }
 
-void hard_drop(char *Field, Mino *pmino) {
+void hard_drop(char *Field, Mino *pmino, int *do_hold) {
     while (fall_check(Field, pmino)) {
         --(pmino->h);
     }
-    put_mino(Field, pmino);
+    put_mino(Field, pmino, do_hold);
 }
 
 void try_move_right(char *Field, Mino *pmino) {
@@ -217,4 +219,26 @@ void try_rotate(char *Field, Mino *pmino, int rotate) {
     } else if (rotate==1) {
         pmino->dir = (pmino->dir + 3) & 0b11;
     }
+}
+
+void hold(int *hold_mino, Mino *pmino, int *do_hold) {
+
+    int tmino;
+
+    if (*do_hold) {
+        return;
+    }
+    *do_hold = 1;
+
+    if (*hold_mino < 0) {
+        *hold_mino = pmino->mino;
+        pmino->mino = -1;
+        return;
+    }
+
+    tmino = *hold_mino;
+    *hold_mino = pmino->mino;
+    pmino->mino = tmino;
+    init_mino(pmino);
+    return;
 }
