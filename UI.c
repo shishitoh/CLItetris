@@ -5,6 +5,7 @@
 #include "nexts.h"
 #include "setup.h"
 #include "mino.h"
+#include "core.h"
 
 #define BLANKTOP 2
 #define BLANKLEFT 4
@@ -76,6 +77,45 @@ void write_curmino(Mino *pmino) {
     }
 }
 
+void write_ghost(char *Field, Mino *pmino) {
+
+    int i, _h, _w, _hh;
+    int all_empty;
+    _h = pmino->h;
+    _w = pmino->w;
+
+    while (1) {
+
+        all_empty = 1;
+
+        for (i = 0; i < 4; ++i) {
+            if (!is_empty(Field,
+                          _h+MINOSarray[pmino->mino][pmino->dir][i][0],
+                          _w+MINOSarray[pmino->mino][pmino->dir][i][1])) {
+
+                all_empty = 0;
+                break;
+            }
+        }
+
+        if (!all_empty) {
+            ++_h;
+            break;
+        }
+        --_h;
+    }
+
+    attrset(COLOR_PAIR(pmino->mino) | A_BLINK | A_DIM);
+    for (i = 0; i < 4; ++i) {
+        _hh = _h+MINOSarray[pmino->mino][pmino->dir][i][0];
+        if (_hh < 21) {
+            FIELDADDSTR(_h+MINOSarray[pmino->mino][pmino->dir][i][0],
+                        _w+MINOSarray[pmino->mino][pmino->dir][i][1],
+                        "[]");
+        }
+    }
+}
+
 static char mino_to_char(int mino) {
     
     switch(mino) {
@@ -133,6 +173,7 @@ void write_hold(int hold_mino) {
 
 void write_all(char *Field, Mino *pmino, Nexts *nexts, int L, int hold_mino) {
     write_Field(Field, pmino);
+    write_ghost(Field, pmino);
     write_curmino(pmino);
     write_nexts(nexts, L);
     write_hold(hold_mino);
