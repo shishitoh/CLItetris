@@ -1,84 +1,71 @@
-#include <ncurses.h>
 #include <string.h>
-#include <unistd.h>
+#include <ncurses.h>
 
 #include "setup.h"
 #include "UI.h"
-#include "core.h"
-#include "nexts.h"
+#include "game.h"
 
 int main(void) {
 
     int ch;
-    int hold_mino;
-    int do_hold;
-    char *Field;
-    Mino smino;
-    Nexts nexts;
+    Player player;
 
     Init_Display();
+    fprintf(stderr, "Init_Display\n");
 
     /* 初期化 */
     while (1) {
 
-        Init_Game(&Field, &smino, &nexts, &hold_mino);
+        fprintf(stderr, "before init_player\n");
+        init_player(&player, 5);
+        fprintf(stderr, "init_player\n");
 
         /* ゲーム中 */
         while (1) {
 
-            /* ミノがなければ生成する,
-            生成できなければゲームオーバー */
-            if (smino.mino < 0) {
-                smino.mino = pop_next(&nexts);
-                if (pop_check(Field, &smino)) {
-                    init_mino(&smino);
-                } else {
-                    break;
-                }
-            }
-
-            write_all(Field, &smino, &nexts, 5, hold_mino);
+            write_all(&player);
             refresh();
 
             ch = getch();
-            /* vim_like key bind */
+
             switch(ch) {
                 case 'h': { /* left */
-                    try_move_left(Field, &smino);
+                    key_mov_left(&player);
                     break;
                 }
                 case 'j': { /* down */
-                    try_move_down(Field, &smino, &do_hold);
+                    key_mov_down(&player);
                     break;
                 }
                 case 'k': { /* up */
-                    hard_drop(Field, &smino, &do_hold);
+                    key_hard_drop(&player);
                     break;
                 }
                 case 'l': { /* right */
-                    try_move_right(Field, &smino);
+                    key_mov_right(&player);
                     break;
                 }
-                case 's': { /* 半時計 */
-                    try_rotate(Field, &smino, 1);
+                case 's': { /* 反時計 */
+                    key_rotation_left(&player);
                     break;
                 }
                 case 'd': { /* 時計 */
-                    try_rotate(Field, &smino, 0);
+                    key_rotation_right(&player);
                     break;
                 }
                 case 'a': {
-                    hold(&hold_mino, &smino, &do_hold);
+                    key_hold(&player);
                     break;
                 }
                 default: {
                     continue;
                 }
             }
-            deleterows(Field);
-        }
 
-        Free_Game(&Field, &nexts);
+            if (is_gameover(&player)) {
+                break;
+            }
+        }
     }
     Free_Display();
 

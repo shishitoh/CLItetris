@@ -1,12 +1,5 @@
 #include "mino.h"
 
-#define ARR_SIZE 14
-void init_mino(Mino *pmino) {
-    pmino->dir = 0;
-    pmino->h = INITH;
-    pmino->w = INITW;
-}
-
 const char Iarray[4][4][2] = {
     {{2, 0}, {2, 1}, {2, 2}, {2, 3}},
     {{0, 2}, {1, 2}, {2, 2}, {3, 2}},
@@ -82,32 +75,16 @@ const char NOTIoffsets[8][5][2] = {
     {{0, 0}, {0, -1}, {-1, -1}, { 2, 0}, { 2, -1}},
 };
 
-const char (*MINOSarray[16])[4][2];
-void init_MINOSarray(void) {
-    MINOSarray[IMINO] = Iarray;
-    MINOSarray[OMINO] = Oarray;
-    MINOSarray[SMINO] = Sarray;
-    MINOSarray[ZMINO] = Zarray;
-    MINOSarray[JMINO] = Jarray;
-    MINOSarray[LMINO] = Larray;
-    MINOSarray[TMINO] = Tarray;
-}
+const char (*MINOSarray[])[4][2] = {
+    [IMINO] = Iarray, [OMINO] = Oarray,
+    [SMINO] = Sarray, [ZMINO] = Zarray,
+    [JMINO] = Jarray, [LMINO] = Larray,
+    [TMINO] = Tarray
+};
 
-const char (*SRSoffsets[16])[5][2];
-void init_SRSoffsets(void) {
-    SRSoffsets[IMINO] = Ioffsets;
-    SRSoffsets[OMINO] = NOTIoffsets;
-    SRSoffsets[SMINO] = NOTIoffsets;
-    SRSoffsets[ZMINO] = NOTIoffsets;
-    SRSoffsets[JMINO] = NOTIoffsets;
-    SRSoffsets[LMINO] = NOTIoffsets;
-    SRSoffsets[TMINO] = NOTIoffsets;
-}
-
-struct NEXTS {
-    /* 内部的なNEXT配列,キューとして使用する
-    少なくともゲーム中表示される数+7の
-    サイズを確保しなければならない */
-    int Narray[ARR_SIZE];
-
-} Nexts;
+const char (*SRSoffsets[])[5][2] = {
+    [IMINO] = Ioffsets, [OMINO] = NOTIoffsets,
+    [SMINO] = NOTIoffsets, [ZMINO] = NOTIoffsets,
+    [JMINO] = NOTIoffsets, [LMINO] = NOTIoffsets,
+    [TMINO] = NOTIoffsets
+};

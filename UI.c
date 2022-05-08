@@ -1,11 +1,7 @@
 #include <ncurses.h>
-#include <string.h>
 #include <unistd.h>
 
-#include "nexts.h"
-#include "setup.h"
-#include "mino.h"
-#include "core.h"
+#include "game.h"
 
 #define BLANKTOP 2
 #define BLANKLEFT 4
@@ -16,7 +12,7 @@
              (str))
 
 
-void write_Field(char *Field, Mino *pmino) {
+void write_Field(Player const *const player) {
 
     int h, w;
     char mino_type;
@@ -27,7 +23,7 @@ void write_Field(char *Field, Mino *pmino) {
 
         for (w = 0; w < 10; ++w) {
 
-            mino_type = GET_TYPE(Field, h, w);
+            mino_type = BLOCK(player, h, w);
 
             // blank
             if (mino_type == BLANK) {
@@ -45,7 +41,7 @@ void write_Field(char *Field, Mino *pmino) {
     /* 21行目、空白部分には点を置かない */
     for (w = 0; w < 10; ++w) {
 
-        mino_type = GET_TYPE(Field, h, w);
+        mino_type = BLOCK(player, h, w);
         if (mino_type == BLANK) {
             attrset(COLOR_PAIR(mino_type));
             FIELDADDSTR(h, w, "  ");
@@ -56,42 +52,42 @@ void write_Field(char *Field, Mino *pmino) {
     }
 }
 
-void write_curmino(Mino *pmino) {
+void write_curmino(Player const *const player) {
 
     int i;
     int _h;
 
     /* Fieldにミノがない場合は何もしない */
-    if (pmino->mino < 0) return;
+    if (player->mino == UNDEF) return;
 
     for (i = 0; i < 4; ++i) {
-        _h = pmino->h+MINOSarray[pmino->mino][pmino->dir][i][0];
+        _h = player->minoh+MINOSarray[player->mino][player->mino_dir][i][0];
         if (_h < 21) {
-            attrset(COLOR_PAIR(pmino->mino));
-            FIELDADDSTR(pmino->h
-                            +MINOSarray[pmino->mino][pmino->dir][i][0],
-                        pmino->w
-                            +MINOSarray[pmino->mino][pmino->dir][i][1],
+            attrset(COLOR_PAIR(player->mino));
+            FIELDADDSTR(player->minoh
+                            +MINOSarray[player->mino][player->mino_dir][i][0],
+                        player->minow
+                            +MINOSarray[player->mino][player->mino_dir][i][1],
                         "[]");
         }
     }
 }
 
-void write_ghost(char *Field, Mino *pmino) {
+void write_ghost(Player const *const player) {
 
     int i, _h, _w, _hh;
     int all_empty;
-    _h = pmino->h;
-    _w = pmino->w;
+    _h = player->minoh;
+    _w = player->minow;
 
     while (1) {
 
         all_empty = 1;
 
         for (i = 0; i < 4; ++i) {
-            if (!is_empty(Field,
-                          _h+MINOSarray[pmino->mino][pmino->dir][i][0],
-                          _w+MINOSarray[pmino->mino][pmino->dir][i][1])) {
+            if (!is_blank(player,
+                          _h+MINOSarray[player->mino][player->mino_dir][i][0],
+                          _w+MINOSarray[player->mino][player->mino_dir][i][1])) {
 
                 all_empty = 0;
                 break;
@@ -105,19 +101,19 @@ void write_ghost(char *Field, Mino *pmino) {
         --_h;
     }
 
-    attrset(COLOR_PAIR(pmino->mino) | A_BLINK | A_DIM);
+    attrset(COLOR_PAIR(player->mino) | A_BLINK | A_DIM);
     for (i = 0; i < 4; ++i) {
-        _hh = _h+MINOSarray[pmino->mino][pmino->dir][i][0];
+        _hh = _h+MINOSarray[player->mino][player->mino_dir][i][0];
         if (_hh < 21) {
-            FIELDADDSTR(_h+MINOSarray[pmino->mino][pmino->dir][i][0],
-                        _w+MINOSarray[pmino->mino][pmino->dir][i][1],
+            FIELDADDSTR(_h+MINOSarray[player->mino][player->mino_dir][i][0],
+                        _w+MINOSarray[player->mino][player->mino_dir][i][1],
                         "[]");
         }
     }
 }
 
-static char mino_to_char(int mino) {
-    
+char mino_to_char(int mino) {
+
     switch(mino) {
         case IMINO: {
             return 'I';
@@ -144,14 +140,14 @@ static char mino_to_char(int mino) {
     return 0;
 }
 
-void write_nexts(Nexts *nexts, int L) {
+void write_nexts(Player const *const player) {
 
     int i;
-    int mino;
+    char mino;
     char ch;
 
-    for (i = 0; i < L; ++i) {
-        mino = Nget_element(nexts, i);
+    for (i = 0; i < player->nextlen; ++i) {
+        mino = get_nth_next(player, i);
         ch = mino_to_char(mino);
         attrset(COLOR_PAIR(mino));
         mvaddch(BLANKTOP + 1 + 2*i,
@@ -160,22 +156,21 @@ void write_nexts(Nexts *nexts, int L) {
     }
 }
 
-void write_hold(int hold_mino) {
+void write_hold(Player const *const player) {
 
-    if (hold_mino < 0) {
+    if (player->hold_mino < 0) {
         attrset(COLOR_PAIR(BLANK));
         mvaddch(BLANKTOP+1, 2*(BLANKLEFT-1), '-');
     } else {
-        attrset(COLOR_PAIR(hold_mino));
-        mvaddch(BLANKTOP+1, 2*(BLANKLEFT-1), mino_to_char(hold_mino));
+        attrset(COLOR_PAIR(player->hold_mino));
+        mvaddch(BLANKTOP+1, 2*(BLANKLEFT-1), mino_to_char(player->hold_mino));
     }
 }
 
-void write_all(char *Field, Mino *pmino, Nexts *nexts, int L, int hold_mino) {
-    write_Field(Field, pmino);
-    write_ghost(Field, pmino);
-    write_curmino(pmino);
-    write_nexts(nexts, L);
-    write_hold(hold_mino);
+void write_all(Player const *const player) {
+    write_Field(player);
+    write_ghost(player);
+    write_curmino(player);
+    write_nexts(player);
+    write_hold(player);
 }
-

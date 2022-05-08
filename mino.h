@@ -1,7 +1,7 @@
 #pragma once
 
-#define INITH 17
-#define INITW 3
+/* これに対応する画面出力はしない */
+#define UNDEF -1
 
 /* 0はなし、init_pairを定義するときに困るので */
 #define IMINO 1
@@ -14,21 +14,7 @@
 #define OJAMA 8
 #define BLANK 9
 
-#define GET_TYPE(f, y, x) (f)[10*(y) + (x)]
+extern const char (*MINOSarray[])[4][2];
 
-typedef struct tetrimino {
-    int mino, dir;
-    char h, w;
-} Mino;
+extern const char (*SRSoffsets[])[5][2];
 
-void init_mino(Mino *pmino);
-
-/* ?MINO[向き][構成block][ブロックの相対位置]
-向きについては初期の向きが0、そこから
-時計回りするたびに1, 2, 3となる。 */
-/* ブロックの相対位置は{h, w} */
-extern const char (*MINOSarray[16])[4][2];
-void init_MINOSarray(void);
-
-extern const char (*SRSoffsets[16])[5][2];
-void init_SRSoffsets(void);

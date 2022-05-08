@@ -1,6 +1,6 @@
 #pragma once
 
-#include "nexts.h"
 #include "mino.h"
+#include "game.h"
 
-void write_all(char *Field, Mino *pmino, Nexts *nexts, int L, int hold_mino);
+void write_all(Player const *const player);

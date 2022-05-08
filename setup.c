@@ -1,11 +1,8 @@
 #include <ncurses.h>
-#include <string.h>
-#include <unistd.h>
-#include <stdlib.h>
 #include <time.h>
 
 #include "mino.h"
-#include "nexts.h"
+#include "game.h"
 
 #define MYCOLOR_BLACK COLOR_BLACK
 #define MYCOLOR_RED COLOR_RED
@@ -16,22 +13,6 @@
 #define MYCOLOR_GREEN COLOR_GREEN
 #define MYCOLOR_ORANGE 12 // この数字は適当、多分8以上ならOK
 #define MYCOLOR_GRAY 13
-
-void initField(char **Field) {
-
-    int i;
-
-    *Field = (char*)malloc(sizeof(char) * 10 * 40);
-
-    for (i = 0; i < 10*40; ++i) {
-        (*Field)[i] = BLANK;
-    }
-}
-
-void freeField(char **Field) {
-    free(*Field);
-    *Field = NULL;
-}
 
 void Init_Display(void) {
 
@@ -65,34 +46,6 @@ void Init_Display(void) {
     /* 現在の端末画面をクリア */
     erase();
 
-    init_MINOSarray();
-    init_SRSoffsets();
-}
-
-void Init_Game(char **Field, Mino *pmino, Nexts *nexts, int *hold_mino) {
-
     /* 乱数初期化 */
     srand((unsigned char)time(NULL));
-
-    /* ミノを置くフィールドを確保 */
-    initField(Field);
-
-    pmino->mino = -1;
-
-    /* next配列の初期化 */
-   init_nexts(nexts, 11);
-
-   /* ホールドを空に */
-   *hold_mino = -1;
-}
-
-void Free_Game(char **Field, Nexts *nexts) {
-    free(*Field);
-    *Field = NULL;
-
-    free_nexts(nexts);
-}
-
-void Free_Display(void) {
-    endwin();
 }
