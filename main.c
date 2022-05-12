@@ -11,14 +11,11 @@ int main(void) {
     Player player;
 
     Init_Display();
-    fprintf(stderr, "Init_Display\n");
 
     /* 初期化 */
     while (1) {
 
-        fprintf(stderr, "before init_player\n");
         init_player(&player, 5);
-        fprintf(stderr, "init_player\n");
 
         /* ゲーム中 */
         while (1) {

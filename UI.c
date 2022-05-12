@@ -15,7 +15,7 @@
 void write_Field(Player const *const player) {
 
     int h, w;
-    char mino_type;
+    mino_t mino_type;
 
     /* 1行目から20行目までの表示。
     行は1行目から、下から数える */
@@ -112,7 +112,7 @@ void write_ghost(Player const *const player) {
     }
 }
 
-char mino_to_char(int mino) {
+char mino_to_char(mino_t mino) {
 
     switch(mino) {
         case IMINO: {
@@ -143,7 +143,7 @@ char mino_to_char(int mino) {
 void write_nexts(Player const *const player) {
 
     int i;
-    char mino;
+    mino_t mino;
     char ch;
 
     for (i = 0; i < player->nextlen; ++i) {
@@ -151,14 +151,14 @@ void write_nexts(Player const *const player) {
         ch = mino_to_char(mino);
         attrset(COLOR_PAIR(mino));
         mvaddch(BLANKTOP + 1 + 2*i,
-                2*(BLANKLEFT+10+2),
+                2*(BLANKLEFT+FIELDW+2),
                 ch);
     }
 }
 
 void write_hold(Player const *const player) {
 
-    if (player->hold_mino < 0) {
+    if (player->hold_mino == UNDEF) {
         attrset(COLOR_PAIR(BLANK));
         mvaddch(BLANKTOP+1, 2*(BLANKLEFT-1), '-');
     } else {

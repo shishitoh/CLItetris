@@ -3,7 +3,7 @@
 #include "game.h"
 
 void init_queue(Queue *const Q, const int size) {
-    Q->array = (int*)malloc(sizeof(int) * size);
+    Q->array = (mino_t*)malloc(sizeof(mino_t) * size);
     Q->size = size;
     Q->length = 0;
     Q->start = 0;
@@ -16,7 +16,7 @@ void free_queue(Queue *const Q) {
     Q->start = 0;
 }
 
-void queue(Queue *const Q, const int a, int *const suc) {
+void queue(Queue *const Q, const mino_t a, int *const suc) {
 
     if (Q->length == Q->size) {
         if (suc != NULL) {
@@ -32,8 +32,8 @@ void queue(Queue *const Q, const int a, int *const suc) {
     return;
 }
 
-int deque(Queue *const Q, int *const suc) {
-    int ret;
+mino_t deque(Queue *const Q, int *const suc) {
+    mino_t ret;
     if (Q->length == 0) {
         if (suc) {
             *suc = 0;
@@ -49,11 +49,11 @@ int deque(Queue *const Q, int *const suc) {
     return ret;
 }
 
-int get_nth(Queue const *const queue, const int n) {
+mino_t get_nth(Queue const *const queue, const int n) {
     return queue->array[(queue->start+n) % queue->size];
 }
 
-const char MINOS[7] = {
+const mino_t MINOS[7] = {
     IMINO, OMINO, JMINO, ZMINO,
     SMINO, LMINO, TMINO
 };
@@ -93,9 +93,9 @@ void free_nexts(Nexts *const nexts) {
     free_queue(&(nexts->queue));
 }
 
-char pop_next(Nexts *const nexts) {
+mino_t pop_next(Nexts *const nexts) {
 
-    int ret;
+    mino_t ret;
 
     if (nexts->loop_cnt == 0) {
         shuffle(nexts);
@@ -116,7 +116,7 @@ int is_blank(Player const *const player, const char h, char w) {
 }
 
 int is_mino_putable(Player const *const player,
-                    const char mino, const char dir,
+                    const mino_t mino, const char dir,
                     const char h, const char w) {
 
     int i;
@@ -133,16 +133,15 @@ int is_mino_putable(Player const *const player,
     return 1;
 }
 
-void set_mino(Player *const player, const char mino) {
+void set_mino(Player *const player, const mino_t mino) {
 
     player->mino = mino;
     player->mino_dir = DIR_N;
     player->minoh = MINO_POP_H;
     player->minow = MINO_POP_W;
-    player->did_hold = 0;
 }
 
-void put_mino(Player *const player, const char mino) {
+void put_mino(Player *const player, const mino_t mino) {
 
     int i;
 
@@ -156,12 +155,12 @@ void put_mino(Player *const player, const char mino) {
     set_mino(player, mino);
 }
 
-char get_nth_next(Player const *const player, const int n) {
+mino_t get_nth_next(Player const *const player, const int n) {
     return get_nth(&((player->nexts).queue), n);
 }
 
 int mino_SRS_check(Player const *const player,
-                   const char mino, const char dir,
+                   const mino_t mino, const char dir,
                    const char rot, const char h, const char w) {
 
     int i;
@@ -203,6 +202,7 @@ int is_mino_rotatable(Player const *const player, const char rot) {
 
 void _mov(Player *const player,
           const char rh, const char rw, int *suc) {
+
     if (is_mino_movable(player, rh, rw)) {
         player->minoh += rh;
         player->minow += rw;
@@ -233,6 +233,7 @@ void init_player(Player *const player, const int nextlen) {
 
     /* 現在ミノをセット,ホールドミノを空に */
     set_mino(player, pop_next(&(player->nexts)));
+    player->did_hold = 0;
     player->hold_mino = UNDEF;
 }
 
@@ -253,8 +254,9 @@ void key_mov_down(Player *const player) {
     int suc;
     _mov(player, -1, 0, &suc);
 
-    if (suc == 0) {
+    if (!suc) {
         put_mino(player, pop_next(&(player->nexts)));
+        player->did_hold = 0;
     }
 }
 
@@ -269,6 +271,7 @@ void key_hard_drop(Player *const player) {
 
     player->minoh += rh;
     put_mino(player, pop_next(&(player->nexts)));
+    player->did_hold = 0;
 }
 
 void _key_rotation(Player *const player, const char rot) {
@@ -296,7 +299,7 @@ void key_rotation_right(Player *const player) {
 
 void key_hold(Player *const player) {
 
-    char tmp;
+    mino_t tmp;
 
     if (player->did_hold) {
         return;

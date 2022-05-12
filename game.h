@@ -30,7 +30,7 @@
 
 /* 直接使用はしない */
 typedef struct {
-    int *array;
+    mino_t *array;
     int size;
     int length;
     int start;
@@ -39,13 +39,13 @@ typedef struct {
 /* 直接使用はしない */
 typedef struct {
     Queue queue;
-    char ShuffledMinos[7];
+    mino_t ShuffledMinos[7];
     int loop_cnt;
 } Nexts;
 
 typedef struct {
-    char Field[FIELDH][FIELDW];
-    char mino;
+    mino_t Field[FIELDH][FIELDW];
+    mino_t mino;
     char mino_dir;
     char minoh;
     char minow;
@@ -56,7 +56,7 @@ typedef struct {
 } Player;
 
 int is_blank(Player const *const player, const char h, const char w);
-char get_nth_next(Player const *const player, const int n);
+mino_t get_nth_next(Player const *const player, const int n);
 void init_player(Player *const player, const int nextlen);
 void free_player(Player *const player);
 void key_mov_left(Player *const player);
