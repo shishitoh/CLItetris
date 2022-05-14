@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <time.h>
+#include <sys/time.h>
 
 #include "game.h"
 
@@ -19,14 +21,14 @@ void free_queue(Queue *const Q) {
 void queue(Queue *const Q, const mino_t a, int *const suc) {
 
     if (Q->length == Q->size) {
-        if (suc != NULL) {
+        if (suc) {
             *suc = 0;
         }
         return;
     }
     (Q->array)[(Q->start+Q->length) % Q->size] = a;
-    Q->length += 1;
-    if (suc != NULL) {
+    ++(Q->length);
+    if (suc) {
         *suc = 1;
     }
     return;
@@ -115,6 +117,10 @@ int is_blank(Player const *const player, const char h, char w) {
         && BLOCK(player, h, w) == BLANK;
 }
 
+void start_rock_down(Player *const player) {
+    gettimeofday(&(player->rock_down_tv), NULL);
+}
+
 int is_mino_putable(Player const *const player,
                     const mino_t mino, const char dir,
                     const char h, const char w) {
@@ -133,27 +139,6 @@ int is_mino_putable(Player const *const player,
     return 1;
 }
 
-void set_mino(Player *const player, const mino_t mino) {
-
-    player->mino = mino;
-    player->mino_dir = DIR_N;
-    player->minoh = MINO_POP_H;
-    player->minow = MINO_POP_W;
-}
-
-void put_mino(Player *const player, const mino_t mino) {
-
-    int i;
-
-    for (i = 0; i < 4; ++i) {
-        BLOCK(player,
-              player->minoh+MINOSarray[player->mino][player->mino_dir][i][0],
-              player->minow+MINOSarray[player->mino][player->mino_dir][i][1])
-            = player->mino;
-    }
-    delete_rows(player);
-    set_mino(player, mino);
-}
 
 mino_t get_nth_next(Player const *const player, const int n) {
     return get_nth(&((player->nexts).queue), n);
@@ -189,6 +174,10 @@ int is_mino_movable(Player const *const player,
                            player->minow+rw);
 }
 
+int is_land(Player const *const player) {
+    return !is_mino_movable(player, -1, 0);
+}
+
 int is_mino_rotatable(Player const *const player, const char rot) {
 
     return mino_SRS_check(player,
@@ -203,9 +192,14 @@ int is_mino_rotatable(Player const *const player, const char rot) {
 void _mov(Player *const player,
           const char rh, const char rw, int *suc) {
 
+    int inc_rock_down = 0;
+
+
     if (is_mino_movable(player, rh, rw)) {
+        inc_rock_down = is_land(player) ? 1 : inc_rock_down;
         player->minoh += rh;
         player->minow += rw;
+        inc_rock_down = is_land(player) ? 1 : inc_rock_down;
         if (suc != NULL) {
             *suc = 1;
         }
@@ -214,9 +208,42 @@ void _mov(Player *const player,
             *suc = 0;
         }
     }
+
+    if (inc_rock_down) {
+        ++(player->rock_down_count);
+        start_rock_down(player);
+    }
 }
 
-void init_player(Player *const player, const int nextlen) {
+void set_mino(Player *const player, const mino_t mino) {
+
+    player->mino = mino;
+    player->mino_dir = DIR_N;
+    player->minoh = MINO_POP_H;
+    player->minow = MINO_POP_W;
+    gettimeofday(&(player->fall_tv), NULL);
+    player->rock_down_count = 0;
+    if (is_land(player)) {
+        start_rock_down(player);
+        ++(player->rock_down_count);
+    }
+}
+
+void put_mino(Player *const player, const mino_t mino) {
+
+    int i;
+
+    for (i = 0; i < 4; ++i) {
+        BLOCK(player,
+              player->minoh+MINOSarray[player->mino][player->mino_dir][i][0],
+              player->minow+MINOSarray[player->mino][player->mino_dir][i][1])
+            = player->mino;
+    }
+    delete_rows(player);
+    set_mino(player, mino);
+}
+
+void init_player(Player *const player, const int nextlen, const int fall_ms) {
 
     int i, j;
 
@@ -235,6 +262,10 @@ void init_player(Player *const player, const int nextlen) {
     set_mino(player, pop_next(&(player->nexts)));
     player->did_hold = 0;
     player->hold_mino = UNDEF;
+
+    /* タイマー系のセット */
+    player->fall_ms = fall_ms;
+    player->rock_down_ms = 500;
 }
 
 void free_player(Player *const player) {
@@ -249,32 +280,23 @@ void key_mov_right(Player *const player) {
     _mov(player, 0, MOV_R, NULL);
 }
 
-void key_mov_down(Player *const player) {
-
-    int suc;
-    _mov(player, -1, 0, &suc);
-
-    if (!suc) {
-        put_mino(player, pop_next(&(player->nexts)));
-        player->did_hold = 0;
-    }
+void key_soft_drop(Player *const player) {
+    _mov(player, -1, 0, NULL);
 }
 
 void key_hard_drop(Player *const player) {
 
-    int rh = 0;
+    while (is_mino_movable(player, -1, 0)) {
+        --(player->minoh);
+    }
 
-    do {
-        --rh;
-    } while (is_mino_movable(player, rh, 0));
-    ++rh;
-
-    player->minoh += rh;
     put_mino(player, pop_next(&(player->nexts)));
     player->did_hold = 0;
 }
 
 void _key_rotation(Player *const player, const char rot) {
+
+    int inc_rock_down = 0;
 
     int var = is_mino_rotatable(player, rot);
 
@@ -282,10 +304,19 @@ void _key_rotation(Player *const player, const char rot) {
         return;
     }
 
+    inc_rock_down = is_land(player) ? 1 : inc_rock_down;
+
     player->minoh += SRSoffsets[player->mino][SRS_ROT(player->mino_dir, rot)][var][0];
     player->minow += SRSoffsets[player->mino][SRS_ROT(player->mino_dir, rot)][var][1];
 
     player->mino_dir = (rot == ROT_L) ? (player->mino_dir+3)%4 : (player->mino_dir+1)%4;
+
+    inc_rock_down = is_land(player) ? 1 : inc_rock_down;
+
+    if (inc_rock_down) {
+        ++(player->rock_down_count);
+        start_rock_down(player);
+    }
 }
 
 
@@ -351,4 +382,58 @@ void delete_rows(Player *const player) {
 
 int is_gameover(Player const *const player) {
     return !is_mino_movable(player, 0, 0);
+}
+
+int pass_fall_time(Player const *const player) {
+
+    long long int from_ms;
+
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+
+    /* オーバーフロー防止 */
+    from_ms = (tv.tv_sec - (player->fall_tv).tv_sec) * 1000;
+    from_ms += (tv.tv_usec - (player->fall_tv).tv_usec) / 1000;
+
+    if (from_ms > player->fall_ms) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+void auto_fall(Player *const player) {
+
+    if (pass_fall_time(player)) {
+        key_soft_drop(player);
+        gettimeofday(&(player->fall_tv), NULL);
+    }
+}
+
+int pass_rock_down_time(Player const *const player) {
+
+    long long int from_ms;
+
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+
+    from_ms = (tv.tv_sec - (player->rock_down_tv).tv_sec) * 1000;
+    from_ms += (tv.tv_usec - (player->rock_down_tv).tv_usec) / 1000;
+
+    if (from_ms > player->rock_down_ms) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+void rock_down_put_mino(Player *const player) {
+
+    if (is_land(player)
+        && (pass_rock_down_time(player)
+            || player->rock_down_count >= 15)) {
+
+        put_mino(player, pop_next(&(player->nexts)));
+
+    }
 }

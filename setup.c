@@ -42,6 +42,7 @@ void Init_Display(void) {
     noecho();
     cbreak();
     curs_set(0);
+    nodelay(stdscr, TRUE);
 
     /* 現在の端末画面をクリア */
     erase();

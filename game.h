@@ -1,15 +1,17 @@
 #pragma once
 
 #include <stdlib.h>
+#include <time.h>
+#include <sys/time.h>
 
 #include "mino.h"
 
 #define FIELDH 40
 #define FIELDW 10
 
-/* ミノの出現位置 ミノの最下段が20列目(1スタート)
+/* ミノの出現位置 ミノの最下段が21列目(1スタート)
 となるように定義 */
-#define MINO_POP_H 17
+#define MINO_POP_H 18
 #define MINO_POP_W 3
 
 #define MOV_R 1
@@ -53,18 +55,25 @@ typedef struct {
     int did_hold;
     Nexts nexts;
     int nextlen;
+    int fall_ms;
+    struct timeval fall_tv;
+    int rock_down_ms;
+    int rock_down_count;
+    struct timeval rock_down_tv;
 } Player;
 
 int is_blank(Player const *const player, const char h, const char w);
 mino_t get_nth_next(Player const *const player, const int n);
-void init_player(Player *const player, const int nextlen);
+void init_player(Player *const player, const int nextlen, const int fall_ms);
 void free_player(Player *const player);
 void key_mov_left(Player *const player);
 void key_mov_right(Player *const player);
-void key_mov_down(Player *const player);
+void key_soft_drop(Player *const player);
 void key_hard_drop(Player *const player);
 void key_rotation_left(Player *const player);
 void key_rotation_right(Player *const player);
 void key_hold(Player *const player);
 void delete_rows(Player *const player);
 int is_gameover(Player const *const player);
+void auto_fall(Player *const player);
+void rock_down_put_mino(Player *const player);
