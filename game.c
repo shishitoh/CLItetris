@@ -434,6 +434,6 @@ void rock_down_put_mino(Player *const player) {
             || player->rock_down_count >= 15)) {
 
         put_mino(player, pop_next(&(player->nexts)));
-
+        player->did_hold = 0;
     }
 }
