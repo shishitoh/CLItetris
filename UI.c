@@ -12,7 +12,7 @@
              (str))
 
 
-void write_Field(Player const *const player) {
+static void write_Field(Player const *const player) {
 
     int h, w;
     mino_t mino_type;
@@ -52,7 +52,7 @@ void write_Field(Player const *const player) {
     }
 }
 
-void write_curmino(Player const *const player) {
+static void write_curmino(Player const *const player) {
 
     int i;
     int _h;
@@ -73,7 +73,7 @@ void write_curmino(Player const *const player) {
     }
 }
 
-void write_ghost(Player const *const player) {
+static void write_ghost(Player const *const player) {
 
     int i, _h, _w, _hh;
     int all_empty;
@@ -112,7 +112,7 @@ void write_ghost(Player const *const player) {
     }
 }
 
-char mino_to_char(mino_t mino) {
+static inline char mino_to_char(mino_t mino) {
 
     switch(mino) {
         case IMINO: {
@@ -140,7 +140,7 @@ char mino_to_char(mino_t mino) {
     return 0;
 }
 
-void write_nexts(Player const *const player) {
+static void write_nexts(Player const *const player) {
 
     int i;
     mino_t mino;
@@ -156,7 +156,7 @@ void write_nexts(Player const *const player) {
     }
 }
 
-void write_hold(Player const *const player) {
+static void write_hold(Player const *const player) {
 
     if (player->hold_mino == UNDEF) {
         attrset(COLOR_PAIR(BLANK));

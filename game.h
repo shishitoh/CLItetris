@@ -1,6 +1,5 @@
 #pragma once
 
-#include <stdlib.h>
 #include <time.h>
 #include <sys/time.h>
 
@@ -13,9 +12,6 @@
 となるように定義 */
 #define MINO_POP_H 18
 #define MINO_POP_W 3
-
-#define MOV_R 1
-#define MOV_L -1
 
 #define DIR_N 0
 #define DIR_E 1
@@ -30,7 +26,6 @@
 
 #define BLOCK(player, h, w) (player->Field)[h][w]
 
-/* 直接使用はしない */
 typedef struct {
     mino_t *array;
     int size;
@@ -38,7 +33,6 @@ typedef struct {
     int start;
 } Queue;
 
-/* 直接使用はしない */
 typedef struct {
     Queue queue;
     mino_t ShuffledMinos[7];
@@ -73,7 +67,6 @@ void key_hard_drop(Player *const player);
 void key_rotation_left(Player *const player);
 void key_rotation_right(Player *const player);
 void key_hold(Player *const player);
-void delete_rows(Player *const player);
 int is_gameover(Player const *const player);
 void auto_fall(Player *const player);
 void rock_down_put_mino(Player *const player);

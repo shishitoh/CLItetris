@@ -1,24 +1,24 @@
+#include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
-#include <sys/time.h>
 
 #include "game.h"
 
-void init_queue(Queue *const Q, const int size) {
+static void init_queue(Queue *const Q, const int size) {
     Q->array = (mino_t*)malloc(sizeof(mino_t) * size);
     Q->size = size;
     Q->length = 0;
     Q->start = 0;
 }
 
-void free_queue(Queue *const Q) {
+static void free_queue(Queue *const Q) {
     free(Q->array);
     Q->size = 0;
     Q->length = 0;
     Q->start = 0;
 }
 
-void queue(Queue *const Q, const mino_t a, int *const suc) {
+static void queue(Queue *const Q, const mino_t a, int *const suc) {
 
     if (Q->length == Q->size) {
         if (suc) {
@@ -34,7 +34,7 @@ void queue(Queue *const Q, const mino_t a, int *const suc) {
     return;
 }
 
-mino_t deque(Queue *const Q, int *const suc) {
+static mino_t deque(Queue *const Q, int *const suc) {
     mino_t ret;
     if (Q->length == 0) {
         if (suc) {
@@ -51,17 +51,18 @@ mino_t deque(Queue *const Q, int *const suc) {
     return ret;
 }
 
-mino_t get_nth(Queue const *const queue, const int n) {
+static inline mino_t get_nth(Queue const *const queue, const int n) {
     return queue->array[(queue->start+n) % queue->size];
 }
 
-const mino_t MINOS[7] = {
+
+static const mino_t MINOS[7] = {
     IMINO, OMINO, JMINO, ZMINO,
     SMINO, LMINO, TMINO
 };
 
 /* Fisher-Yates shuffle */
-void shuffle(Nexts *const nexts) {
+static void shuffle(Nexts *const nexts) {
 
     int i, j;
 
@@ -72,7 +73,7 @@ void shuffle(Nexts *const nexts) {
     }
 }
 
-void init_nexts(Nexts *const nexts, const int size) {
+static void init_nexts(Nexts *const nexts, const int size) {
 
     int i, j;
 
@@ -91,11 +92,11 @@ void init_nexts(Nexts *const nexts, const int size) {
     nexts->loop_cnt = size%7;
 }
 
-void free_nexts(Nexts *const nexts) {
+static void free_nexts(Nexts *const nexts) {
     free_queue(&(nexts->queue));
 }
 
-mino_t pop_next(Nexts *const nexts) {
+static mino_t pop_next(Nexts *const nexts) {
 
     mino_t ret;
 
@@ -111,40 +112,25 @@ mino_t pop_next(Nexts *const nexts) {
 }
 
 
-int is_blank(Player const *const player, const char h, char w) {
-    return 0 <= h && h < FIELDH
-        && 0 <= w && w < FIELDW
-        && BLOCK(player, h, w) == BLANK;
-}
-
-void start_rock_down(Player *const player) {
-    gettimeofday(&(player->rock_down_tv), NULL);
-}
-
-int is_mino_putable(Player const *const player,
+static int is_mino_putable(Player const *const player,
                     const mino_t mino, const char dir,
                     const char h, const char w) {
 
     int i;
 
     for (i = 0; i < 4; ++i) {
-        if (is_blank(player,
-                     h+MINOSarray[mino][dir][i][0],
-                     w+MINOSarray[mino][dir][i][1])) {
+        if (!is_blank(player,
+                      h+MINOSarray[mino][dir][i][0],
+                      w+MINOSarray[mino][dir][i][1])) {
 
-            continue;
+            return 0;
         }
-        return 0;
     }
     return 1;
 }
 
 
-mino_t get_nth_next(Player const *const player, const int n) {
-    return get_nth(&((player->nexts).queue), n);
-}
-
-int mino_SRS_check(Player const *const player,
+static int mino_SRS_check(Player const *const player,
                    const mino_t mino, const char dir,
                    const char rot, const char h, const char w) {
 
@@ -164,7 +150,7 @@ int mino_SRS_check(Player const *const player,
 }
 
 /* rh, rwは現在位置からの移動量 */
-int is_mino_movable(Player const *const player,
+static inline int is_mino_movable(Player const *const player,
                     const char rh, const char rw) {
 
     return is_mino_putable(player,
@@ -174,11 +160,11 @@ int is_mino_movable(Player const *const player,
                            player->minow+rw);
 }
 
-int is_land(Player const *const player) {
+static inline int is_land(Player const *const player) {
     return !is_mino_movable(player, -1, 0);
 }
 
-int is_mino_rotatable(Player const *const player, const char rot) {
+static inline int is_mino_rotatable(Player const *const player, const char rot) {
 
     return mino_SRS_check(player,
                           player->mino,
@@ -188,166 +174,7 @@ int is_mino_rotatable(Player const *const player, const char rot) {
                           player->minow);
 }
 
-
-void _mov(Player *const player,
-          const char rh, const char rw, int *suc) {
-
-    int inc_rock_down = 0;
-
-
-    if (is_mino_movable(player, rh, rw)) {
-        inc_rock_down = is_land(player) ? 1 : inc_rock_down;
-        player->minoh += rh;
-        player->minow += rw;
-        inc_rock_down = is_land(player) ? 1 : inc_rock_down;
-        if (suc != NULL) {
-            *suc = 1;
-        }
-    } else {
-        if (suc != NULL) {
-            *suc = 0;
-        }
-    }
-
-    if (inc_rock_down) {
-        ++(player->rock_down_count);
-        start_rock_down(player);
-    }
-}
-
-void set_mino(Player *const player, const mino_t mino) {
-
-    player->mino = mino;
-    player->mino_dir = DIR_N;
-    player->minoh = MINO_POP_H;
-    player->minow = MINO_POP_W;
-    gettimeofday(&(player->fall_tv), NULL);
-    player->rock_down_count = 0;
-    if (is_land(player)) {
-        start_rock_down(player);
-        ++(player->rock_down_count);
-    }
-}
-
-void put_mino(Player *const player, const mino_t mino) {
-
-    int i;
-
-    for (i = 0; i < 4; ++i) {
-        BLOCK(player,
-              player->minoh+MINOSarray[player->mino][player->mino_dir][i][0],
-              player->minow+MINOSarray[player->mino][player->mino_dir][i][1])
-            = player->mino;
-    }
-    delete_rows(player);
-    set_mino(player, mino);
-}
-
-void init_player(Player *const player, const int nextlen, const int fall_ms) {
-
-    int i, j;
-
-    /* FieldをBLANKで埋める */
-    for (i = 0; i < FIELDH; ++i) {
-        for (j = 0; j < FIELDW; ++j) {
-            (player->Field)[i][j] = BLANK;
-        }
-    }
-
-    /* nextを用意 */
-    init_nexts(&(player->nexts), nextlen);
-    player->nextlen = nextlen;
-
-    /* 現在ミノをセット,ホールドミノを空に */
-    set_mino(player, pop_next(&(player->nexts)));
-    player->did_hold = 0;
-    player->hold_mino = UNDEF;
-
-    /* タイマー系のセット */
-    player->fall_ms = fall_ms;
-    player->rock_down_ms = 500;
-}
-
-void free_player(Player *const player) {
-    free_nexts(&(player->nexts));
-}
-
-void key_mov_left(Player *const player) {
-    _mov(player, 0, MOV_L, NULL);
-}
-
-void key_mov_right(Player *const player) {
-    _mov(player, 0, MOV_R, NULL);
-}
-
-void key_soft_drop(Player *const player) {
-    _mov(player, -1, 0, NULL);
-}
-
-void key_hard_drop(Player *const player) {
-
-    while (is_mino_movable(player, -1, 0)) {
-        --(player->minoh);
-    }
-
-    put_mino(player, pop_next(&(player->nexts)));
-    player->did_hold = 0;
-}
-
-void _key_rotation(Player *const player, const char rot) {
-
-    int inc_rock_down = 0;
-
-    int var = is_mino_rotatable(player, rot);
-
-    if (var < 0) {
-        return;
-    }
-
-    inc_rock_down = is_land(player) ? 1 : inc_rock_down;
-
-    player->minoh += SRSoffsets[player->mino][SRS_ROT(player->mino_dir, rot)][var][0];
-    player->minow += SRSoffsets[player->mino][SRS_ROT(player->mino_dir, rot)][var][1];
-
-    player->mino_dir = (rot == ROT_L) ? (player->mino_dir+3)%4 : (player->mino_dir+1)%4;
-
-    inc_rock_down = is_land(player) ? 1 : inc_rock_down;
-
-    if (inc_rock_down) {
-        ++(player->rock_down_count);
-        start_rock_down(player);
-    }
-}
-
-
-void key_rotation_left(Player *const player) {
-    _key_rotation(player, ROT_L);
-}
-
-void key_rotation_right(Player *const player) {
-    _key_rotation(player, ROT_R);
-}
-
-void key_hold(Player *const player) {
-
-    mino_t tmp;
-
-    if (player->did_hold) {
-        return;
-    }
-
-    tmp = player->hold_mino;
-    player->hold_mino = player->mino;
-    if (tmp == UNDEF) {
-        set_mino(player, pop_next(&(player->nexts)));
-    } else {
-        set_mino(player, tmp);
-    }
-    player->did_hold = 1;
-}
-
-
-void delete_rows(Player *const player) {
+static void delete_rows(Player *const player) {
 
     int i, brow, trow;
     int exists_empty;
@@ -380,11 +207,87 @@ void delete_rows(Player *const player) {
     }
 }
 
-int is_gameover(Player const *const player) {
-    return !is_mino_movable(player, 0, 0);
+static void _mov(Player *const player,
+          const char rh, const char rw, int *suc) {
+
+    int inc_rock_down = 0;
+
+    if (is_mino_movable(player, rh, rw)) {
+        inc_rock_down = is_land(player) ? 1 : inc_rock_down;
+        player->minoh += rh;
+        player->minow += rw;
+        inc_rock_down = is_land(player) ? 1 : inc_rock_down;
+        if (suc != NULL) {
+            *suc = 1;
+        }
+    } else {
+        if (suc != NULL) {
+            *suc = 0;
+        }
+    }
+
+    if (inc_rock_down) {
+        ++(player->rock_down_count);
+        gettimeofday(&(player->rock_down_tv), NULL);
+    }
 }
 
-int pass_fall_time(Player const *const player) {
+static void _key_rotation(Player *const player, const char rot) {
+
+    int inc_rock_down = 0;
+
+    int var = is_mino_rotatable(player, rot);
+
+    if (var < 0) {
+        return;
+    }
+
+    inc_rock_down = is_land(player) ? 1 : inc_rock_down;
+
+    player->minoh += SRSoffsets[player->mino][SRS_ROT(player->mino_dir, rot)][var][0];
+    player->minow += SRSoffsets[player->mino][SRS_ROT(player->mino_dir, rot)][var][1];
+
+    player->mino_dir = (rot == ROT_L) ? (player->mino_dir+3)%4 : (player->mino_dir+1)%4;
+
+    inc_rock_down = is_land(player) ? 1 : inc_rock_down;
+
+    if (inc_rock_down) {
+        ++(player->rock_down_count);
+        gettimeofday(&(player->rock_down_tv), NULL);
+    }
+}
+
+static void set_mino(Player *const player, const mino_t mino) {
+
+    player->mino = mino;
+    player->mino_dir = DIR_N;
+    player->minoh = MINO_POP_H;
+    player->minow = MINO_POP_W;
+    gettimeofday(&(player->fall_tv), NULL);
+    player->rock_down_count = 0;
+    if (is_land(player)) {
+        gettimeofday(&(player->rock_down_tv), NULL);
+        ++(player->rock_down_count);
+    }
+}
+
+static void put_mino(Player *const player, const mino_t mino) {
+
+    int i;
+
+    for (i = 0; i < 4; ++i) {
+        BLOCK(player,
+              player->minoh+MINOSarray[player->mino][player->mino_dir][i][0],
+              player->minow+MINOSarray[player->mino][player->mino_dir][i][1])
+            = player->mino;
+    }
+    delete_rows(player);
+    player->did_hold = 0;
+    set_mino(player, mino);
+}
+
+
+static int pass_fall_time(Player const *const player) {
 
     long long int from_ms;
 
@@ -402,15 +305,7 @@ int pass_fall_time(Player const *const player) {
     }
 }
 
-void auto_fall(Player *const player) {
-
-    if (pass_fall_time(player)) {
-        key_soft_drop(player);
-        gettimeofday(&(player->fall_tv), NULL);
-    }
-}
-
-int pass_rock_down_time(Player const *const player) {
+static int pass_rock_down_time(Player const *const player) {
 
     long long int from_ms;
 
@@ -424,6 +319,105 @@ int pass_rock_down_time(Player const *const player) {
         return 1;
     } else {
         return 0;
+    }
+}
+
+int is_blank(Player const *const player, const char h, char w) {
+    return 0 <= h && h < FIELDH
+        && 0 <= w && w < FIELDW
+        && BLOCK(player, h, w) == BLANK;
+}
+
+mino_t get_nth_next(Player const *const player, const int n) {
+    return get_nth(&((player->nexts).queue), n);
+}
+
+void init_player(Player *const player, const int nextlen, const int fall_ms) {
+
+    int i, j;
+
+    /* FieldをBLANKで埋める */
+    for (i = 0; i < FIELDH; ++i) {
+        for (j = 0; j < FIELDW; ++j) {
+            (player->Field)[i][j] = BLANK;
+        }
+    }
+
+    /* nextを用意 */
+    init_nexts(&(player->nexts), nextlen);
+    player->nextlen = nextlen;
+
+    /* 現在ミノをセット,ホールドミノを空に */
+    set_mino(player, pop_next(&(player->nexts)));
+    player->did_hold = 0;
+    player->hold_mino = UNDEF;
+
+    /* タイマー系のセット */
+    player->fall_ms = fall_ms;
+    player->rock_down_ms = 500;
+}
+
+void free_player(Player *const player) {
+    free_nexts(&(player->nexts));
+}
+
+inline void key_mov_left(Player *const player) {
+    _mov(player, 0, -1, NULL);
+}
+
+inline void key_mov_right(Player *const player) {
+    _mov(player, 0, 1, NULL);
+}
+
+inline void key_soft_drop(Player *const player) {
+    _mov(player, -1, 0, NULL);
+}
+
+void key_hard_drop(Player *const player) {
+
+    while (is_mino_movable(player, -1, 0)) {
+        --(player->minoh);
+    }
+
+    put_mino(player, pop_next(&(player->nexts)));
+    player->did_hold = 0;
+}
+
+inline void key_rotation_left(Player *const player) {
+    _key_rotation(player, ROT_L);
+}
+
+inline void key_rotation_right(Player *const player) {
+    _key_rotation(player, ROT_R);
+}
+
+void key_hold(Player *const player) {
+
+    mino_t tmp;
+
+    if (player->did_hold) {
+        return;
+    }
+
+    tmp = player->hold_mino;
+    player->hold_mino = player->mino;
+    if (tmp == UNDEF) {
+        set_mino(player, pop_next(&(player->nexts)));
+    } else {
+        set_mino(player, tmp);
+    }
+    player->did_hold = 1;
+}
+
+inline int is_gameover(Player const *const player) {
+    return !is_mino_movable(player, 0, 0);
+}
+
+void auto_fall(Player *const player) {
+
+    if (pass_fall_time(player)) {
+        key_soft_drop(player);
+        gettimeofday(&(player->fall_tv), NULL);
     }
 }
 
