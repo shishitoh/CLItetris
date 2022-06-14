@@ -9,20 +9,22 @@ int main(void) {
 
     int ch = 0;
     Player player;
+    Config conf;
 
     Init_Display();
+    get_config_data(&conf);
 
     /* 初期化 */
     while (1) {
 
         /* nextの数, 自動落下間隔(ms) */
-        init_player(&player, 5, 100);
+        init_player(&player, conf.next, conf.fall);
         nodelay(stdscr, TRUE);
 
         /* ゲーム中 */
         while (1) {
 
-            write_all(&player);
+            write_all(&player, &conf);
             refresh();
 
             if (is_gameover(&player)) {
@@ -59,8 +61,10 @@ int main(void) {
                     break;
                 }
                 case 'a': { /* hold */
-                    key_hold(&player);
-                    break;
+                    if (conf.hold) {
+                        key_hold(&player);
+                        break;
+                    }
                 }
                 default: {
                     break;
@@ -70,6 +74,7 @@ int main(void) {
             rock_down_put_mino(&player);
 
         }
+        free_player(&player);
         nodelay(stdscr, FALSE);
         getch();
     }

@@ -24,7 +24,7 @@
 上のマクロ6つの値に依存 */
 #define SRS_ROT(dir, rot) ( (dir) + ((rot) << 2) )
 
-#define BLOCK(player, h, w) (player->Field)[h][w]
+#define BLOCK(player, h, w) ((player)->Field)[(h)][(w)]
 
 typedef struct {
     mino_t *array;

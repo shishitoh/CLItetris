@@ -2,6 +2,8 @@
 #include <unistd.h>
 
 #include "game.h"
+#include "setup.h"
+#include "UI.h"
 
 #define BLANKTOP 2
 #define BLANKLEFT 4
@@ -167,10 +169,12 @@ static void write_hold(Player const *const player) {
     }
 }
 
-void write_all(Player const *const player) {
+void write_all(Player const *const player, Config const *const conf) {
     write_Field(player);
     write_ghost(player);
     write_curmino(player);
     write_nexts(player);
-    write_hold(player);
+    if (conf->hold) {
+        write_hold(player);
+    }
 }

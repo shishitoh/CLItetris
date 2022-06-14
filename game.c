@@ -322,13 +322,13 @@ static int pass_rock_down_time(Player const *const player) {
     }
 }
 
-int is_blank(Player const *const player, const char h, char w) {
+inline int is_blank(Player const *const player, const char h, char w) {
     return 0 <= h && h < FIELDH
         && 0 <= w && w < FIELDW
         && BLOCK(player, h, w) == BLANK;
 }
 
-mino_t get_nth_next(Player const *const player, const int n) {
+inline mino_t get_nth_next(Player const *const player, const int n) {
     return get_nth(&((player->nexts).queue), n);
 }
 
@@ -344,7 +344,7 @@ void init_player(Player *const player, const int nextlen, const int fall_ms) {
     }
 
     /* nextを用意 */
-    init_nexts(&(player->nexts), nextlen);
+    init_nexts(&(player->nexts), nextlen+1);
     player->nextlen = nextlen;
 
     /* 現在ミノをセット,ホールドミノを空に */
