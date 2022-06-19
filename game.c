@@ -50,7 +50,6 @@ static mino_t deque(Queue *const Q, int *const suc) {
     }
     return ret;
 }
-
 static inline mino_t get_nth(Queue const *const queue, const int n) {
     return queue->array[(queue->start+n) % queue->size];
 }
@@ -113,8 +112,8 @@ static mino_t pop_next(Nexts *const nexts) {
 
 
 static int is_mino_putable(Player const *const player,
-                    const mino_t mino, const char dir,
-                    const char h, const char w) {
+                    const mino_t mino, const int dir,
+                    const int h, const int w) {
 
     int i;
 
@@ -131,8 +130,8 @@ static int is_mino_putable(Player const *const player,
 
 
 static int mino_SRS_check(Player const *const player,
-                   const mino_t mino, const char dir,
-                   const char rot, const char h, const char w) {
+                   const mino_t mino, const int dir,
+                   const int rot, const int h, const int w) {
 
     int i;
 
@@ -151,7 +150,7 @@ static int mino_SRS_check(Player const *const player,
 
 /* rh, rwは現在位置からの移動量 */
 static inline int is_mino_movable(Player const *const player,
-                    const char rh, const char rw) {
+                    const int rh, const int rw) {
 
     return is_mino_putable(player,
                            player->mino,
@@ -164,7 +163,7 @@ static inline int is_land(Player const *const player) {
     return !is_mino_movable(player, -1, 0);
 }
 
-static inline int is_mino_rotatable(Player const *const player, const char rot) {
+static inline int is_mino_rotatable(Player const *const player, const int rot) {
 
     return mino_SRS_check(player,
                           player->mino,
@@ -208,7 +207,7 @@ static void delete_rows(Player *const player) {
 }
 
 static void _mov(Player *const player,
-          const char rh, const char rw, int *suc) {
+          const int rh, const int rw, int *suc) {
 
     int inc_rock_down = 0;
 
@@ -232,7 +231,7 @@ static void _mov(Player *const player,
     }
 }
 
-static void _key_rotation(Player *const player, const char rot) {
+static void _key_rotation(Player *const player, const int rot) {
 
     int inc_rock_down = 0;
 
@@ -322,7 +321,7 @@ static int pass_rock_down_time(Player const *const player) {
     }
 }
 
-inline int is_blank(Player const *const player, const char h, char w) {
+inline int is_blank(Player const *const player, const int h, int w) {
     return 0 <= h && h < FIELDH
         && 0 <= w && w < FIELDW
         && BLOCK(player, h, w) == BLANK;

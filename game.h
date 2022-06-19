@@ -42,9 +42,9 @@ typedef struct {
 typedef struct {
     mino_t Field[FIELDH][FIELDW];
     mino_t mino;
-    char mino_dir;
-    char minoh;
-    char minow;
+    int mino_dir;
+    int minoh;
+    int minow;
     int hold_mino;
     int did_hold;
     Nexts nexts;
@@ -56,7 +56,7 @@ typedef struct {
     struct timeval rock_down_tv;
 } Player;
 
-int is_blank(Player const *const player, const char h, const char w);
+int is_blank(Player const *const player, const int h, const int w);
 mino_t get_nth_next(Player const *const player, const int n);
 void init_player(Player *const player, const int nextlen, const int fall_ms);
 void free_player(Player *const player);
