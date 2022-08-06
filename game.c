@@ -190,7 +190,7 @@ static void delete_rows(Player *const player) {
         }
 
         if (exists_empty) {
-            if (brow < trow) {
+            if (brow != trow) {
                 for (i = 0; i < FIELDW; ++i) {
                     BLOCK(player, brow, i) = BLOCK(player, trow, i);
                 }
@@ -266,6 +266,7 @@ static void set_mino(Player *const player, const mino_t mino) {
     player->minow = MINO_POP_W;
     gettimeofday(&(player->fall_tv), NULL);
     player->rock_down_count = 0;
+    player->fall_count = 0;
     if (is_land(player)) {
         gettimeofday(&(player->rock_down_tv), NULL);
         ++(player->rock_down_count);
@@ -285,25 +286,6 @@ static void put_mino(Player *const player, const mino_t mino) {
     delete_rows(player);
     player->did_hold = 0;
     set_mino(player, mino);
-}
-
-
-static int pass_fall_time(Player const *const player) {
-
-    long long int from_ms;
-
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-
-    /* オーバーフロー防止 */
-    from_ms = (tv.tv_sec - (player->fall_tv).tv_sec) * 1000;
-    from_ms += (tv.tv_usec - (player->fall_tv).tv_usec) / 1000;
-
-    if (from_ms > player->fall_ms) {
-        return 1;
-    } else {
-        return 0;
-    }
 }
 
 static int pass_rock_down_time(Player const *const player) {
@@ -416,10 +398,20 @@ inline int is_gameover(Player const *const player) {
 
 void auto_fall(Player *const player) {
 
-    if (pass_fall_time(player)) {
-        key_soft_drop(player);
-        gettimeofday(&(player->fall_tv), NULL);
+    int i, fall_count_n;
+    long long int from_ms;
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+
+    from_ms = (tv.tv_sec - (player->fall_tv).tv_sec) * 1000;
+    from_ms += (tv.tv_usec - (player->fall_tv).tv_usec) / 1000;
+
+    fall_count_n = from_ms / player->fall_ms;
+
+    for (i = player->fall_count; i < fall_count_n; ++i) {
+        _mov(player, -1, 0, NULL);
     }
+    player->fall_count = fall_count_n;
 }
 
 void rock_down_put_mino(Player *const player) {

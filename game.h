@@ -39,6 +39,7 @@ typedef struct {
     Nexts nexts;
     int nextlen;
     int fall_ms;
+    int fall_count;
     struct timeval fall_tv;
     int rock_down_ms;
     int rock_down_count;
