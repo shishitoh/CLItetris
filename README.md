@@ -12,6 +12,13 @@ tetris in linux terminal
 - d: right-rotation
 - a: hold
 
+# Config
+
+configファイルから設定を変更可。
+fall - 自動落下間隔 (ms)
+next - ネクストの数
+hold - 1でホールド有効、0で無効
+
 # テトリスガイドラインについて
 
 このテトリスは可能な部分は[テトリスガイドライン](https://www.dropbox.com/s/g55gwls0h2muqzn/tetris%20guideline%20docs%202009.zip?dl=0)に準拠して作成した。
@@ -26,11 +33,11 @@ tetris in linux terminal
 
 ### ネクスト
 
-表示ネクストは五つ、七回一巡で各種類のミノが一回だけ出現する。
+表示ネクストはデフォルト5つ、設定から変更可能。七回一巡で各種類のミノが一回だけ出現する。
 
 ### ホールド
 
-実装済み。
+実装済み。設定から無効化も可。
 
 ### ゴースト
 
@@ -75,7 +82,7 @@ tetris in linux terminal
 
 ### 自動落下
 
-現状、落下速度はコンパイル時に決定。
+実装済み。設定から変更可。
 
 ### ゲームオーバー
 
