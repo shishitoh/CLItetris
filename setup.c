@@ -8,15 +8,16 @@
 #include "mino.h"
 #include "game.h"
 
-#define MYCOLOR_BLACK COLOR_BLACK
-#define MYCOLOR_RED COLOR_RED
-#define MYCOLOR_CYAN COLOR_CYAN
-#define MYCOLOR_BLUE COLOR_BLUE
-#define MYCOLOR_YELLOW COLOR_YELLOW
-#define MYCOLOR_MAGENTA COLOR_MAGENTA
-#define MYCOLOR_GREEN COLOR_GREEN
-#define MYCOLOR_ORANGE 12 // この数字は適当、多分8以上ならOK
-#define MYCOLOR_GRAY 13
+#define MYCOLOR_BLACK 16
+#define MYCOLOR_WHITE 17
+#define MYCOLOR_RED 18
+#define MYCOLOR_CYAN 19
+#define MYCOLOR_BLUE 20
+#define MYCOLOR_YELLOW 21
+#define MYCOLOR_MAGENTA 22
+#define MYCOLOR_GREEN 23
+#define MYCOLOR_ORANGE 24
+#define MYCOLOR_GRAY 25
 
 void Init_Display(void) {
 
@@ -25,21 +26,29 @@ void Init_Display(void) {
 
     /* 色一覧を定義 */
     start_color();
-    init_color(MYCOLOR_ORANGE, 1000, 500, 0);
+    init_color(MYCOLOR_BLACK, 0, 0, 0);
+    init_color(MYCOLOR_WHITE, 1000, 1000, 1000);
+    init_color(MYCOLOR_RED, 1000, 0, 0);
+    init_color(MYCOLOR_CYAN, 0, 1000, 1000);
+    init_color(MYCOLOR_BLUE, 0, 0, 1000);
+    init_color(MYCOLOR_YELLOW, 1000, 1000, 0);
+    init_color(MYCOLOR_MAGENTA, 500, 0, 500);
+    init_color(MYCOLOR_GREEN, 0, 1000, 0);
+    init_color(MYCOLOR_ORANGE, 1000, 625, 0);
     init_color(MYCOLOR_GRAY, 250, 250, 250);
 
     /* terminalの初期カラーを-1, -1に設定 */
     use_default_colors();
 
     init_pair(BLANK, -1, -1);
-    init_pair(IMINO, -1, MYCOLOR_CYAN);
-    init_pair(OMINO, -1, MYCOLOR_YELLOW);
-    init_pair(SMINO, -1, MYCOLOR_GREEN);
-    init_pair(ZMINO, -1, MYCOLOR_RED);
-    init_pair(JMINO, -1, MYCOLOR_BLUE);
-    init_pair(LMINO, -1, MYCOLOR_ORANGE);
-    init_pair(TMINO, -1, MYCOLOR_MAGENTA);
-    init_pair(OJAMA, -1, MYCOLOR_GRAY);
+    init_pair(IMINO, MYCOLOR_WHITE, MYCOLOR_CYAN);
+    init_pair(OMINO, MYCOLOR_WHITE, MYCOLOR_YELLOW);
+    init_pair(SMINO, MYCOLOR_WHITE, MYCOLOR_GREEN);
+    init_pair(ZMINO, MYCOLOR_WHITE, MYCOLOR_RED);
+    init_pair(JMINO, MYCOLOR_WHITE, MYCOLOR_BLUE);
+    init_pair(LMINO, MYCOLOR_WHITE, MYCOLOR_ORANGE);
+    init_pair(TMINO, MYCOLOR_WHITE, MYCOLOR_MAGENTA);
+    init_pair(OJAMA, MYCOLOR_WHITE, MYCOLOR_GRAY);
 
     /* 入力を表示しないように、
     エンター無しで入力を受け取るように */

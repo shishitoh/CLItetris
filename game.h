@@ -13,17 +13,6 @@
 #define MINO_POP_H 18
 #define MINO_POP_W 3
 
-#define DIR_N 0
-#define DIR_E 1
-#define DIR_S 2
-#define DIR_W 3
-#define ROT_R 0
-#define ROT_L 1
-
-/* SRSoffsetsにおけるmino配列の持ち方と
-上のマクロ6つの値に依存 */
-#define SRS_ROT(dir, rot) ( (dir) + ((rot) << 2) )
-
 #define BLOCK(player, h, w) ((player)->Field)[(h)][(w)]
 
 typedef struct {

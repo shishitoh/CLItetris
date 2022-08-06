@@ -85,8 +85,8 @@ static void init_nexts(Nexts *const nexts, const int size) {
         }
     }
     shuffle(nexts);
-    for (i = 0; i < size%7; ++i) {
-        queue(&(nexts->queue), (nexts->ShuffledMinos)[i], NULL);
+    for (j = 0; j < size%7; ++j) {
+        queue(&(nexts->queue), (nexts->ShuffledMinos)[j], NULL);
     }
     nexts->loop_cnt = size%7;
 }
@@ -216,6 +216,12 @@ static void _mov(Player *const player,
         player->minoh += rh;
         player->minow += rw;
         inc_rock_down = is_land(player) ? 1 : inc_rock_down;
+
+        if (inc_rock_down) {
+            ++(player->rock_down_count);
+        }
+        gettimeofday(&(player->rock_down_tv), NULL);
+
         if (suc != NULL) {
             *suc = 1;
         }
@@ -225,10 +231,6 @@ static void _mov(Player *const player,
         }
     }
 
-    if (inc_rock_down) {
-        ++(player->rock_down_count);
-        gettimeofday(&(player->rock_down_tv), NULL);
-    }
 }
 
 static void _key_rotation(Player *const player, const int rot) {
