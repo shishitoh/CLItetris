@@ -1,5 +1,5 @@
 CXX = gcc
-CFLAGS = -lncurses -Wall -std=c11
+CFLAGS = -lncurses -Wall --pedantic-errors -std=c11
 SRCS = $(shell ls *.c)
 OBJS = $(SRCS:.c=.o)
 

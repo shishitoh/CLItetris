@@ -4,6 +4,7 @@
 #include <sys/time.h>
 
 #include "mino.h"
+#include "config.h"
 
 #define FIELDH 40
 #define FIELDW 10
@@ -13,43 +14,23 @@
 #define MINO_POP_H 18
 #define MINO_POP_W 3
 
-#define BLOCK(player, h, w) ((player)->Field)[(h)][(w)]
+typedef struct queue Queue;
+typedef struct nexts Nexts;
+typedef struct player Player;
 
-typedef struct {
-    mino_t *array;
-    int size;
-    int length;
-    int start;
-} Queue;
+typedef struct coodinate {
+    int h;
+    int w;
+} Coodinate;
 
-typedef struct {
-    Queue queue;
-    mino_t ShuffledMinos[7];
-    int loop_cnt;
-} Nexts;
-
-typedef struct {
-    mino_t Field[FIELDH][FIELDW];
-    mino_t mino;
-    int mino_dir;
-    int minoh;
-    int minow;
-    int hold_mino;
-    int did_hold;
-    Nexts nexts;
-    int nextlen;
-    int fall_ms;
-    int fall_count;
-    struct timeval fall_tv;
-    int rock_down_ms;
-    int rock_down_count;
-    struct timeval rock_down_tv;
-} Player;
-
+mino_t block(Player const *const player, const int h, const int w);
 int is_blank(Player const *const player, const int h, const int w);
+mino_t get_mino_type(Player const *const player);
+mino_t get_hold_mino_type(Player const *const player);
+Coodinate get_mino_coodinate(Player const *constplayer, const int i);
 mino_t get_nth_next(Player const *const player, const int n);
-void init_player(Player *const player, const int nextlen, const int fall_ms);
-void free_player(Player *const player);
+void player_new(Player **const pplayer, Config *const pconf);
+void player_free(Player **const pplayer);
 void key_mov_left(Player *const player);
 void key_mov_right(Player *const player);
 void key_soft_drop(Player *const player);
@@ -60,3 +41,4 @@ void key_hold(Player *const player);
 int is_gameover(Player const *const player);
 void auto_fall(Player *const player);
 void rock_down_put_mino(Player *const player);
+Config *const get_playerconf(Player const *const player);

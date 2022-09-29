@@ -25,30 +25,25 @@ static void write_Field(Player const *const player) {
 
         for (w = 0; w < 10; ++w) {
 
-            mino_type = BLOCK(player, h, w);
+            mino_type = block(player, h, w);
 
-            // blank
-            if (mino_type == BLANK) {
-                attrset(COLOR_PAIR(mino_type));
-                FIELDADDSTR(h, w, " .");
-                continue;
-            }
-            // not blank
             attrset(COLOR_PAIR(mino_type));
-            FIELDADDSTR(h, w, "[]");
-
+            if (mino_type == BLANK) {
+                FIELDADDSTR(h, w, " .");
+            } else {
+                FIELDADDSTR(h, w, "[]");
+            }
         }
     }
 
     /* 21行目、空白部分には点を置かない */
     for (w = 0; w < 10; ++w) {
 
-        mino_type = BLOCK(player, h, w);
+        mino_type = block(player, h, w);
+        attrset(COLOR_PAIR(mino_type));
         if (mino_type == BLANK) {
-            attrset(COLOR_PAIR(mino_type));
             FIELDADDSTR(h, w, "  ");
         } else {
-            attrset(COLOR_PAIR(mino_type));
             FIELDADDSTR(h, w, "[]");
         }
     }
@@ -57,59 +52,54 @@ static void write_Field(Player const *const player) {
 static void write_curmino(Player const *const player) {
 
     int i;
-    int _h;
+    mino_t mino_type;
+    Coodinate cdn;
 
-    /* Fieldにミノがない場合は何もしない */
-    if (player->mino == UNDEF) return;
+    /* 操作ミノがない場合は何もしない */
+    if ((mino_type = get_mino_type(player)) == UNDEF) return;
 
+    attrset(COLOR_PAIR(mino_type));
     for (i = 0; i < 4; ++i) {
-        _h = player->minoh+MINOSarray[player->mino][player->mino_dir][i][0];
-        if (_h < 21) {
-            attrset(COLOR_PAIR(player->mino));
-            FIELDADDSTR(player->minoh
-                            +MINOSarray[player->mino][player->mino_dir][i][0],
-                        player->minow
-                            +MINOSarray[player->mino][player->mino_dir][i][1],
-                        "[]");
+        cdn = get_mino_coodinate(player, i);
+        if (cdn.h < 21) {
+            FIELDADDSTR(cdn.h, cdn.w, "[]");
         }
     }
 }
 
 static void write_ghost(Player const *const player) {
 
-    int i, _h, _w, _hh;
-    int all_empty;
-    _h = player->minoh;
-    _w = player->minow;
+    int i;
+    int is_fallable;
+    Coodinate cdns[4];
 
-    while (1) {
+    for (i = 0; i < 4; ++i) {
+        cdns[i] = get_mino_coodinate(player, i);
+    }
 
-        all_empty = 1;
+    is_fallable = 1;
+
+    while (is_fallable) {
 
         for (i = 0; i < 4; ++i) {
-            if (!is_blank(player,
-                          _h+MINOSarray[player->mino][player->mino_dir][i][0],
-                          _w+MINOSarray[player->mino][player->mino_dir][i][1])) {
-
-                all_empty = 0;
+            // -1を見落とさないように
+            if (!is_blank(player, cdns[i].h-1, cdns[i].w)) {
+                is_fallable = 0;
                 break;
             }
         }
 
-        if (!all_empty) {
-            ++_h;
-            break;
+        if (is_fallable) {
+            for (i = 0; i < 4; ++i) {
+                --cdns[i].h;
+            }
         }
-        --_h;
     }
 
-    attrset(COLOR_PAIR(player->mino) | A_BLINK | A_DIM);
+    attrset(COLOR_PAIR(get_mino_type(player)) | A_BLINK | A_DIM);
     for (i = 0; i < 4; ++i) {
-        _hh = _h+MINOSarray[player->mino][player->mino_dir][i][0];
-        if (_hh < 21) {
-            FIELDADDSTR(_h+MINOSarray[player->mino][player->mino_dir][i][0],
-                        _w+MINOSarray[player->mino][player->mino_dir][i][1],
-                        "[]");
+        if (cdns[i].h < 21) {
+            FIELDADDSTR(cdns[i].h, cdns[i].w, "[]");
         }
     }
 }
@@ -148,7 +138,7 @@ static void write_nexts(Player const *const player) {
     mino_t mino;
     char ch;
 
-    for (i = 0; i < player->nextlen; ++i) {
+    for (i = 0; i < get_playerconf(player)->next; ++i) {
         mino = get_nth_next(player, i);
         ch = mino_to_char(mino);
         attrset(COLOR_PAIR(mino));
@@ -160,21 +150,27 @@ static void write_nexts(Player const *const player) {
 
 static void write_hold(Player const *const player) {
 
-    if (player->hold_mino == UNDEF) {
+    mino_t mino_type;
+
+    if (!(get_playerconf(player)->hold)) {
+        return;
+    }
+
+    mino_type = get_hold_mino_type(player);
+
+    if (mino_type == UNDEF) {
         attrset(COLOR_PAIR(BLANK));
         mvaddch(BLANKTOP+1, 2*(BLANKLEFT-1), '-');
     } else {
-        attrset(COLOR_PAIR(player->hold_mino));
-        mvaddch(BLANKTOP+1, 2*(BLANKLEFT-1), mino_to_char(player->hold_mino));
+        attrset(COLOR_PAIR(mino_type));
+        mvaddch(BLANKTOP+1, 2*(BLANKLEFT-1), mino_to_char(mino_type));
     }
 }
 
-void write_all(Player const *const player, Config const *const conf) {
+void write_all(Player const *const player) {
     write_Field(player);
     write_ghost(player);
     write_curmino(player);
     write_nexts(player);
-    if (conf->hold) {
-        write_hold(player);
-    }
+    write_hold(player);
 }

@@ -4,6 +4,15 @@
 
 #include "game.h"
 
+#define BLOCK(player, h, w) ((player)->Field)[(h)][(w)]
+
+typedef struct queue {
+    mino_t *array;
+    int size;
+    int length;
+    int start;
+} Queue;
+
 static void init_queue(Queue *const Q, const int size) {
     Q->array = (mino_t*)malloc(sizeof(mino_t) * size);
     Q->size = size;
@@ -60,6 +69,12 @@ static const mino_t MINOS[7] = {
     SMINO, LMINO, TMINO
 };
 
+typedef struct nexts {
+    Queue queue;
+    mino_t ShuffledMinos[7];
+    int loop_cnt;
+} Nexts;
+
 /* Fisher-Yates shuffle */
 static void shuffle(Nexts *const nexts) {
 
@@ -110,6 +125,24 @@ static mino_t pop_next(Nexts *const nexts) {
     return ret;
 }
 
+typedef struct player {
+    mino_t Field[FIELDH][FIELDW];
+    mino_t mino;
+    int mino_dir;
+    int minoh;
+    int minow;
+    int hold_mino;
+    int did_hold;
+    Nexts nexts;
+    int nextlen;
+    int fall_ms;
+    int fall_count;
+    struct timeval fall_tv;
+    int rock_down_ms;
+    int rock_down_count;
+    struct timeval rock_down_tv;
+    Config *pconf;
+} Player;
 
 static int is_mino_putable(Player const *const player,
                     const mino_t mino, const int dir,
@@ -305,43 +338,69 @@ static int pass_rock_down_time(Player const *const player) {
     }
 }
 
+inline mino_t block(Player const *const player, const int h, const int w) {
+    return BLOCK(player, h, w);
+}
+
 inline int is_blank(Player const *const player, const int h, int w) {
     return 0 <= h && h < FIELDH
         && 0 <= w && w < FIELDW
         && BLOCK(player, h, w) == BLANK;
 }
 
+inline mino_t get_mino_type(Player const *const player) {
+    return player->mino;
+}
+
+inline mino_t get_hold_mino_type(Player const *const player) {
+    return player->hold_mino;
+}
+
+inline Coodinate get_mino_coodinate(Player const *const player, const int i) {
+    return (Coodinate){
+        player->minoh+MINOSarray[player->mino][player->mino_dir][i][0],
+        player->minow+MINOSarray[player->mino][player->mino_dir][i][1]
+    };
+}
+
 inline mino_t get_nth_next(Player const *const player, const int n) {
     return get_nth(&((player->nexts).queue), n);
 }
 
-void init_player(Player *const player, const int nextlen, const int fall_ms) {
+void player_new(Player **const pplayer, Config *const pconf) {
 
     int i, j;
+
+    *pplayer = (Player*)malloc(sizeof(Player));
 
     /* FieldをBLANKで埋める */
     for (i = 0; i < FIELDH; ++i) {
         for (j = 0; j < FIELDW; ++j) {
-            (player->Field)[i][j] = BLANK;
+            ((*pplayer)->Field)[i][j] = BLANK;
         }
     }
 
-    /* nextを用意 */
-    init_nexts(&(player->nexts), nextlen+1);
-    player->nextlen = nextlen;
+    /* nextを用意
+    +1は0が渡されたときのため */
+    init_nexts(&((*pplayer)->nexts), pconf->next+1);
+    (*pplayer)->nextlen = pconf->next;
 
     /* 現在ミノをセット,ホールドミノを空に */
-    set_mino(player, pop_next(&(player->nexts)));
-    player->did_hold = 0;
-    player->hold_mino = UNDEF;
+    set_mino(*pplayer, pop_next(&((*pplayer)->nexts)));
+    (*pplayer)->did_hold = 0;
+    (*pplayer)->hold_mino = UNDEF;
 
     /* タイマー系のセット */
-    player->fall_ms = fall_ms;
-    player->rock_down_ms = 500;
+    (*pplayer)->fall_ms = pconf->fall;
+    (*pplayer)->rock_down_ms = 500;
+
+    (*pplayer)->pconf = pconf;
 }
 
-void free_player(Player *const player) {
-    free_nexts(&(player->nexts));
+void player_free(Player **const pplayer) {
+    free_nexts(&((*pplayer)->nexts));
+    free(*pplayer);
+    *pplayer = NULL;
 }
 
 inline void key_mov_left(Player *const player) {
@@ -423,4 +482,8 @@ void rock_down_put_mino(Player *const player) {
         put_mino(player, pop_next(&(player->nexts)));
         player->did_hold = 0;
     }
+}
+
+Config *const get_playerconf(Player const *const player) {
+    return player->pconf;
 }

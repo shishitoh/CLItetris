@@ -4,4 +4,4 @@
 #include "game.h"
 #include "setup.h"
 
-void write_all(Player const *const player, Config const *const fonf);
+void write_all(Player const *const player);
